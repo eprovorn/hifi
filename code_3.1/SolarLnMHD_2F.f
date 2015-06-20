@@ -595,7 +595,7 @@ c-----------------------------------------------------------------------
 c     magnetic reconnection, boundary conditions.
 c-----------------------------------------------------------------------
 
-c ELena: boundary conditions by default
+c Elena: boundary conditions by default
 c robin means a boundary conditions in equation form
       top%bc_type="robin"
       top%static=.FALSE.
