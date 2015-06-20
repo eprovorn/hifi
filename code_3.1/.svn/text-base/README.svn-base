@@ -1,0 +1,482 @@
+SEL code development project, up to version 2.3
+Copyright (c) 2002-2007, Los Alamos National Laboratory.
+HiFi (also known as SEL) code development project, versions 2.3-3.0
+Copyright (c) 2007-2009, University of Washington.
+HiFi (SEL) code development project, version 3.1
+Copyright (c) 2010-2013, University of Washington & Naval Research Laboratory
+
+Written by HiFi team with Vyacheslav S. Lukin and Alan H. Glasser as
+principle developers.
+
+All rights reserved.
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
+c	README file for 2D HiFi (SEL) code, version 3.1
+c	with brief description of the code structure.
+c	Written by V.S. Lukin on Dec 25th, 2006.
+c	Last modification by V.S. Lukin on Oct 24th, 2011.
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
+
+HiFi (SEL) User Agreement:
+
+HiFi (SEL) is an open source code development project for solving
+systems of coupled non-linear PDEs on (semi-)structured logically
+hexahedral (rectangular) grids that abides by the following BSD-style
+license.  The project has been supported, in part, by the
+U.S. Department of Energy.  Before having access to the code, you must
+agree to the conditions of the license that serve as additional
+protections for the HiFi (SEL) code.
+
+Terms of Agreement:
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+ 
+1) Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.  
+
+2) Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3) Neither the name of the project nor the names of its developers may
+be used to endorse, promote, or publish products derived from this
+software without specific prior written permission by one of the
+principle developers.
+
+4) Publications or figures made using results of the HiFi (SEL) code
+calculations will acknowledge the HiFi (SEL) code.
+
+5) It is understood that the HiFi (SEL) code is still under
+development and thus may not contain all features that users may
+need/want for their problem of interest.
+
+6) It is understood that the HiFi (SEL) project does not guarantee
+that support will always be available to users of the code.  In
+addition, it is understood that extensive support from a HiFi (SEL)
+team member on a particular application generally implies that any
+publication derived from the application will include that teams
+member(s) as a co-author.
+
+THIS SOFTWARE IS PROVIDED BY HiFi team ''AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED.  IN NO EVENT SHALL neither any HiFi team member, nor the
+University of Washington, nor the United States Government, nor any
+agency thereof, nor any of their employees BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+If you agree to the above terms and would like to download and/or use
+the HiFi (SEL) code, please fill out the HiFi (SEL) Agreement Form
+found in HiFi_SEL_Agreement_Form.txt file in the trunk directory of
+this repository and e-mail it to Vyacheslav Lukin at
+vlukin1@mailaps.org.
+
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+c	SEL code description
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+
+The code is separated into the main algorithm library "libsel.a", whose 
+files are located in sub-directory "code_3.1/solver" with it's own 
+makefile; and any number of physics application files located in the 
+main directory "code_3.1" with a makefile that will re-compile both 
+the algorithm library whenever necessary and the desired physics 
+application file.  
+
+The physics application file (for example, physics_templ.f) 
+is specified by setting an environment variable PHYSICS to be 
+the name of the file.  That has to be done before compiling and 
+linking your physics application to libsel.a.  In bash shell, that can be 
+accomplished with the following command:
+
+ export PHYSICS=physics_templ
+
+The application is then compiled with a simple "make" command and 
+produces an executable named "physics_templ".
+
+The application is run by using script named "go", where the most 
+commonly used PETSc run-time flags are provided and an executable 
+named "sel" is expected.  The user should soft-link their physics
+application executable "physics_templ" with "sel" with the following 
+command:
+
+ ln -s physics_templ sel
+
+If you are already familiar with the input deck, you are now ready to 
+run the code.  See below, for brief descriptions of various available 
+input variables.
+
+
+The following is the list of "libsel.a" library files contained in the 
+"code_3.1/solver" directory:
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
+
+driver.F  --	Module responsible for the start-up of the code.  Main 
+		code input parameters are read in and broadcast.
+
+p2_advance.F --	Contains subroutines necessary for initialization/restart
+	     	of the computation.  Subroutine p2_advance_run contains 
+		the main time-advance loop of the code, including 
+		control over switching between the physics application
+		solver and grid adaptation solver;
+
+p2_grid.F --	Monitors spatial convergence error.  Read in grid 
+		adaptation input parameters. Initialization of adaptive 
+		grid calculations.  Interpolation onto the new logical 
+		grid.
+
+p2_snes.F --	Implementation of the time-stepping algorithm using the
+	  	PETSc SNES nonlinear solver.
+
+p2_rj.F  --	Evaluation and storage into PETSc of mass (M) and
+		jacobian (J) matrices and of the right hand side (R) 
+		vector.
+
+p2_interior.F -- Evaluation of interior quadratures for M, J, and R 
+		by calling appropriate equation-specific 
+		subroutines through job2.f module.
+
+p2_edge.F -- 	Evaluation of edge quadratures for M, J, and R.
+		by calling appropriate equation-specific 
+		subroutines through job2.f module.
+
+p2_schur.F  --  Implementation of the physics-based preconditioning 
+	    	algorithm making additional use of either FETI-DP or 
+		static condensation preconditioning;
+
+p2_condense.F -- Performs static condensation by separating combined M+J
+		and R into a "skeleton" part which carries all of the
+		element-to-element coupling and inner element parts,
+		which are also solved here.  The skeleton J' and R' are
+		stored into PETSc objects.
+
+fd.f --		Module designed to test coded up non-linear equations.
+
+p2_ct.F -- 	Allocates and calculates the coordinate transformation 
+		objects for a given mapping from logical to physical
+		space.  Writes and reads the mapping data files.
+
+p2_diagnose.F -- Reads/writes calculated data files.
+
+p2_sel.F --	Subroutines for allocation/deallocation of all major
+		matrix/vector objects. Interpolation into physical
+		space of quantities known in terms of spectral 
+		amplitudes. The main "p2_sel_type" object is also 
+		declared here.
+
+job2.f --	Calls subroutines in physics.f file specifying
+       		the particular system of equations, desired
+		initial and boundary conditions, etc. 
+
+beltrami.f --	Implementation of Beltrami equations whose solution 
+		generates the logical-to-physical coordinate 
+		transformation mappings.
+
+cubit.f --	 Provides interface to the Cubit mesh generator.
+		 (requires NetCDF library)
+
+extra.f --	 Reads an externally generated equilibrium and/or
+		 external coil data, etc.
+
+transport.f --	 Provides several temperature/density/B-field dependent
+	    	 transport operators and coefficients for magnetized
+		 plasmas;
+
+jacobi.f --	 Calculates spectral element basis functons and 
+		 quadrature integration points.
+
+bessel.f --	 Calculates Bessel functons and their zeros.
+
+bicube.f --	 Implementation of C1 bicubic splines for generation 
+		 of smooth spatial convergence monitor functions.
+		 
+spline.f -	 fits functions to cubic splines.
+
+debug.f	--	 Debugging print subroutines.
+
+local.F --	 Declaration of global variables and parameters, some 
+		 derived-type declarations and several generic 
+		 subroutine definitions.
+
+io.f --		 IO unit definitions.
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
+
+In the "code_3.1" directory you will also find the following file:
+
+physics_templ.f
+
+which is a template for creating a new physics application file.
+
+
+Several modules, each of which specifies a system of equations (or
+several very similar such systems) and (possibly several) initial and
+boundary conditions for various problems of interest already exist:
+------------------------------------------------------------------------
+rmhd.f --	 Reduced incompressible MHD equations with
+		 electron inertia and finite ion Larmor radius effects.
+
+cmhd.f --	 Single-fluid compressible MHD. 
+       		 (includes anisotropic effects and cylindrical geometry)
+
+cmhdn.f --	 Single-fluid compressible MHD + background of neutrals. 
+       		 (includes anisotropic effects and cylindrical geometry)
+
+emhd.f --	 Electron MHD equations.
+
+epmhd.f --	 Electron-positron MHD equations.
+
+HallMHD.f --	 Compressible Hall MHD equations with partial electron 
+	  	 viscosity. 
+		 (includes anisotropic effects and cylindrical geometry)
+
+HallMHDiso.f --	 Isothermal Hall MHD equations.
+
+HallMHDicold.f - Compressible Hall MHD equations with cold ions.
+
+fivefield.f -- 	 Incompressible Hall MHD with density evolution,
+		 electron viscosity and inertia.
+
+fourfield.f --	 Incompressible Hall MHD.
+
+fourfieldplus.f  Incompressible Hall MHD with electron viscosity and 
+		 inertia.
+
+fourfieldhlx.f - Incompressible Hall MHD with partial electron viscosity
+	       	 in helical symmetry.
+
+XMHDhlx.f --	 Full two-fluid MHD equiations with anisotropic and 
+	  	 temperature/density dependent dissipation coefficients
+	       	 in helical symmetry.
+		 
+euler1D.f --	 Psuedo-1D Euler equations with viscous effects.
+
+euler2D.f --	 2D Euler equations with viscous effects.
+
+heat.f -- 	 Anisotropic heat conduction equation.
+
+mhd.f --	 Linearized ideal MHD equation.
+
+wave.f --	 2D wave equation.
+...
+------------------------------------------------------------------------
+c
+c	Brief description of input files and parameters
+c
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+
+sel.in:  \\ main SEL code input file
+
+------------------------------------------------------------------------
+&algorithm_input		\\ numerical algorithm input parameters
+
+	solve_type="condense"	\\ type of solver/preconditioner used
+					for implicit time advance 
+	step_type="theta"	\\ time-advance scheme to be used
+	theta=.5		\\ theta parameter in theta-scheme
+
+	adapt_dt=t		\\ allow for adaptive time-stepping
+	errtol=1e-4		\\ normalized Newton convergence 
+				   	tolerance
+	ksp_restart=25		\\ restart GMRES iterations
+	always_pc_reset=t	\\ preconditioner reset flag
+
+	itmax=50		\\ maximum # of Newton iterations
+	itmax_incr=3		\\ increase time-step if fewer iterations
+	itmax_decr=5		\\ decrease time-step if more iterations
+	dt_incr=1.2		\\ factor of time-step increase
+	dt_decr=.6		\\ factor of time-step decrease
+
+	nodal=f			\\ use nodal (vs. usual modal) basis
+	quad_type="gl0"		\\ specifies quadrature points used
+	polar=f			\\ whether or not a polar axis b.c.
+				   	has been imposed 
+	grid_type="cubit"	\\ source of initial logical-to-physical
+				   	grid mapping.("sel" or "cubit")
+	grid_inv_type="uniform" \\ choice of inversion point spacing for
+				   	initial amplitude calculation
+					and logical-to-physical grid
+					mapping.
+	adapt_grid=t		\\ allow for grid adaptation
+
+	monitor=t		\\ produces run and output data  
+	fd_test=f		\\ enables finite difference testing 
+				   	of rhs vs. drdu for interior 
+					equations 
+	fd_bound_test=f		\\ enables finite difference testing 
+				   	of rhs vs. drdu for boundary 
+					equations 
+	du_diagnose=f		\\ diagnostics flag
+
+	outfile_type="hdf5"	\\ output data file type 
+				   	("hdf5" or "dat")
+	parallel_write=f	\\ write data in parallel 
+	parallel_read=f		\\ read data in parallel
+/
+
+&universal_input
+
+	nx=12			\\ number of grid cells in x-direction
+	ny=8			\\ number of grid cells in y-direction
+	nbx=2			\\ number of processors in x-direction
+	np=8			\\ order of the spectral elements
+	nq=10			\\ number of quadrature points
+
+	xperiodic=f		\\ x-periodicity
+	yperiodic=f		\\ y-periodicity
+
+	dt=1.			\\ initial time-step
+	dtmax=1.		\\ maximum allowed time-step
+	dtmin=1.e-8		\\ minimum allowed time-step
+	tmax=100.		\\ maximum total time
+	nstep=50		\\ maximum # of time-steps
+
+	dmout=1			\\ cadance of data output
+	cubit_file="grid.g"	\\ cubit file name
+	outdir="results/emhd_test"	\\ output directory
+	restart_flag=f		\\ restart a run
+	restart_dir="results/"	\\ directory to restart from
+	restart_step=100	\\ step to restart from
+	read_grid=f		\\ read in initial grid
+	grid_step=0		\\ step to read grid from
+	restart_time=f		\\ TRUE if want to reset time on restart
+	restart_t0=0.		\\ if restart_time=t, the value
+				      to restart simulation time to
+/
+... followed by an input parameter namelist specific to the user's 
+physics application (i.e. the namelist desired by the physics 
+application file)
+
+------------------------------------------------------------------------
+
+post.in:  \\ main post-processing input file
+
+------------------------------------------------------------------------
+&post_input
+
+	indir="results"		\\ directory with SEL output
+	postout="post_output"   \\ directory for post-processed HDF5 
+				   output files
+	out_type="dat"		\\ post-processed file output type
+				   ("hdf5" or "dat")
+
+	job_type="."		\\ problem-specific post-processing type
+
+	nxw0=20			\\ # of interpolation points per grid 
+				   cell in x-direction
+	nyw0=20			\\ # of interpolation points per grid 
+				   cell in y-direction
+
+	drawgrid=f		\\ true if want to post-process grid
+	polar_crd=f		\\ true if want to plot data in polar 
+					coordinates
+
+	mfile=10000		\\ maximum # of output files to be 
+				   processed
+	stride=50		\\ process output files with this stride
+
+	contour=t		\\ generate contour plots of elolved 
+				   quantities for XDRAW
+	min_value=0.		\\ set minimum non-zero absolute value of
+					a dependent variable to be
+					plotted on a 2D contour plot
+
+	flag1d=f		\\ generate job-specific 1d diagnostics
+	flag2d=f		\\ generate job-specific 2d diagnostics
+
+	cray_flag=f		\\ Special flag for post-processing 
+				on compute nodes of Cray machines 
+/
+
+&slice_input
+
+	xt_flag=f		\\ generate slices along x for every
+				   time step 
+	yt_flag=f		\\ generate slices along y for every
+				   time step
+	xy_flag=f		\\ generate slices along x, stepping in y
+		   
+	init_flag=f		\\ generate xy slice for the initial
+				   conditions
+	final_flag=f		\\ generate xy slice for the final time
+				   step
+	nxs=100			\\ # of interpolation points in x
+	nys=100			\\ # of interpolation points in y
+
+	xs=.5			\\ position of slice in x
+	ys=0			\\ position of slice in y
+/
+
+
+...  job-specific post-processing NAMELISTS
+ 
+------------------------------------------------------------------------
+
+beltrami.in:  \\ SEL input file specifically for Beltrami equations
+
+------------------------------------------------------------------------
+&beltrami_input
+
+	solve_type="condense"	\\ type of solver/preconditioner used
+					for solving grid adaptation
+					equations
+
+	bel_grid_type="adapt"	\\ type of adaptation
+
+	itmax=100		\\ maximum # of Newton iterations
+	itmax_decr=6		\\ recalculate jacobian every itmax_decr 
+				iterations
+
+	adapt_start=0		\\ earliest time-step that allows grid 
+				adaptation to be executed 
+	gridtol1=2.e-3		\\ maximum griderr allowed before grid 
+				adaptation
+	gridtol2=1.		\\ maximum griderr allowed before 
+				termination
+
+	bel_diagnose=t		\\ diagnostics flag
+	bel_phifac=.8		\\ adaptation parameter that controls 
+				the degree of adaptation in a single 
+				adaptation solve
+/
+------------------------------------------------------------------------
+c	A list of general boundary condition options
+------------------------------------------------------------------------
+
+bc_type = "natural"	\\ Integrate interior equations over the boundary
+			cell + include the boundary integral of the
+			flux through the boundary specified by the 
+			interior equations;
+bc_type = "normflux"	\\ Integrate interior equations over the boundary
+			cell + include the boundary integral of the
+			flux through the boundary specified by a 
+			separate expression;
+bc_type = "zeroflux"	\\ Integrate interior equations over the boundary
+			cell and do not include the additional flux term;
+bc_type = "robin"	\\ Enforces a separate b.c. equation of the form: 
+			A(du/dt)+B(d(du/dn)/dt)=S(t,n,x,u,grad u,grad^2 u)
+bc_type = "periodic"	\\ Enforces periodicity condition on the given 
+			dependent variable on a non-periodic domain
+bc_type = "polar"	\\ Special r=0 polar b.c.
+
+------------------------------------------------------------------------
+c	Ordering of edges of the logical square [0,1]x[0,1]
+------------------------------------------------------------------------
+
+edges:
+	1	x=0	"left"
+	2	y=1	"top"
+	3	x=1	"right"
+	4	y=0	"bottom"

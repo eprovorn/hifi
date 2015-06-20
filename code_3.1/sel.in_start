@@ -1,0 +1,112 @@
+&algorithm_input
+
+	solve_type="condense"
+	step_type="theta"
+	theta=0.5
+
+	adapt_dt=t
+	errtol=1.e-4
+	ksp_restart=250
+	ksps_max=500
+	always_pc_reset=t
+
+	itmax=40
+	itmax_incr=3
+	itmax_decr=5
+	dt_incr=1.5
+	dt_decr=.8
+
+	nodal=f
+
+	quad_type="gl0"
+	polar=f
+	grid_type="sel"
+	grid_inv_type="jacobi"
+
+	adapt_grid=f
+
+	monitor=t
+	fd_test=f
+	fd_bound_test=f
+	du_diagnose=f
+
+	outfile_type="hdf5"
+	parallel_write=t
+	parallel_read=t
+/
+
+&universal_input
+
+	nx=90
+	ny=200
+	nbx=12
+	np=6
+	nq=6
+
+	xperiodic=f
+	yperiodic=f
+
+	dt=0.1
+	dtmax=1.
+	dtmin=5.e-5
+	tmax=1000.
+	nstep=1000
+
+	dmout=5
+	outdir="/scratch1/scratchdirs/eprovorn/CSit_vrt_19"
+	restart_flag=f
+	restart_dir="/scratch1/scratchdirs/eprovorn/CSit_vrt_17"
+	restart_step=0
+	read_grid=f
+	grid_step=0
+	restart_time=f
+        restart_t0=0.
+/
+
+&SolarLnMHD_list
+
+	cylinder=f
+
+	init_type="Chen-Shibata-hlf"
+	source=f
+
+	R0=5.e6
+	lx=4.0
+	ly=8.0
+	x_curve=3.
+	y_curve=2.
+
+	rad0=0.5
+	x0=0.
+
+	c_psi=0.25628
+	c_psi_e=1.1
+	h_psi=2.0
+
+	n0=1.e15
+	p0=1.
+	b0=1.e-3
+	bz0=0.25
+
+	beta0=0.02
+
+	eta_case="Chen-Shibata"
+	eta=1.e-5
+	eta_chrsp=1.e-2
+	eta_vbl=1.e-2
+	y0_eta=0.
+	y_eta=0.2
+	j_c=1.e20
+	etavac=1.
+	hyper_eta=0.
+
+	mu=1.e-4
+	mu_vbl=1.e-1
+
+	kappa_case="."
+	kappa_prp=1.e-5
+	kappa_min=1.e-1
+	kappa_max=10.
+	
+	t_e=300.
+/

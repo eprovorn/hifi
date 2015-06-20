@@ -1,0 +1,281 @@
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/hifi/SEL/!svn/ver/462/trunk/code_3.1
+END
+pn_ext.f
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/hifi/SEL/!svn/ver/456/trunk/code_3.1/pn_ext.f
+END
+go_hopper
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/hifi/SEL/!svn/ver/356/trunk/code_3.1/go_hopper
+END
+XMHD.f
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/hifi/SEL/!svn/ver/386/trunk/code_3.1/XMHD.f
+END
+go_ice
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/hifi/SEL/!svn/ver/314/trunk/code_3.1/go_ice
+END
+euler1D.f
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/hifi/SEL/!svn/ver/304/trunk/code_3.1/euler1D.f
+END
+sel.in
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/hifi/SEL/!svn/ver/336/trunk/code_3.1/sel.in
+END
+makefile_hopper
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/hifi/SEL/!svn/ver/445/trunk/code_3.1/makefile_hopper
+END
+post.in
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/hifi/SEL/!svn/ver/427/trunk/code_3.1/post.in
+END
+HallMHD.f
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/hifi/SEL/!svn/ver/403/trunk/code_3.1/HallMHD.f
+END
+makefile_ice
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/hifi/SEL/!svn/ver/407/trunk/code_3.1/makefile_ice
+END
+frc.f
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/hifi/SEL/!svn/ver/403/trunk/code_3.1/frc.f
+END
+cmhd.f
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/hifi/SEL/!svn/ver/403/trunk/code_3.1/cmhd.f
+END
+poisson2.f
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/hifi/SEL/!svn/ver/304/trunk/code_3.1/poisson2.f
+END
+emhd.f
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/hifi/SEL/!svn/ver/318/trunk/code_3.1/emhd.f
+END
+beltrami.in
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/hifi/SEL/!svn/ver/323/trunk/code_3.1/beltrami.in
+END
+heat.f
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/hifi/SEL/!svn/ver/343/trunk/code_3.1/heat.f
+END
+go_garnet
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/hifi/SEL/!svn/ver/418/trunk/code_3.1/go_garnet
+END
+physics_templ.f
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/hifi/SEL/!svn/ver/318/trunk/code_3.1/physics_templ.f
+END
+makefile_garnet
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/hifi/SEL/!svn/ver/418/trunk/code_3.1/makefile_garnet
+END
+SolarLnMHD_2F.f
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/hifi/SEL/!svn/ver/462/trunk/code_3.1/SolarLnMHD_2F.f
+END
+fourfieldhlx.f
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/hifi/SEL/!svn/ver/318/trunk/code_3.1/fourfieldhlx.f
+END
+XMHDreduced.f
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/hifi/SEL/!svn/ver/386/trunk/code_3.1/XMHDreduced.f
+END
+fivefield.f
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/hifi/SEL/!svn/ver/304/trunk/code_3.1/fivefield.f
+END
+epmhd.f
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/hifi/SEL/!svn/ver/304/trunk/code_3.1/epmhd.f
+END
+mhd6.f
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/hifi/SEL/!svn/ver/318/trunk/code_3.1/mhd6.f
+END
+mhd7.f
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/hifi/SEL/!svn/ver/318/trunk/code_3.1/mhd7.f
+END
+go_solartheory4
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/hifi/SEL/!svn/ver/459/trunk/code_3.1/go_solartheory4
+END
+go_wardlaw
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/hifi/SEL/!svn/ver/454/trunk/code_3.1/go_wardlaw
+END
+euler2D.f
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/hifi/SEL/!svn/ver/318/trunk/code_3.1/euler2D.f
+END
+wave.f
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/hifi/SEL/!svn/ver/318/trunk/code_3.1/wave.f
+END
+makefile_solartheory4
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/hifi/SEL/!svn/ver/459/trunk/code_3.1/makefile_solartheory4
+END
+helix_hmhd.f
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/hifi/SEL/!svn/ver/304/trunk/code_3.1/helix_hmhd.f
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/hifi/SEL/!svn/ver/432/trunk/code_3.1/README
+END
+SolarHallMHD.f
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/hifi/SEL/!svn/ver/403/trunk/code_3.1/SolarHallMHD.f
+END
+makefile_wardlaw
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/hifi/SEL/!svn/ver/454/trunk/code_3.1/makefile_wardlaw
+END
+SolarLnHMHD.f
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/hifi/SEL/!svn/ver/453/trunk/code_3.1/SolarLnHMHD.f
+END
+XMHDhlx.f
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/hifi/SEL/!svn/ver/304/trunk/code_3.1/XMHDhlx.f
+END
+pn.f
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/hifi/SEL/!svn/ver/403/trunk/code_3.1/pn.f
+END
+LnNavStok.f
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/hifi/SEL/!svn/ver/318/trunk/code_3.1/LnNavStok.f
+END
+fourfieldplus.f
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/hifi/SEL/!svn/ver/318/trunk/code_3.1/fourfieldplus.f
+END
+HallMHDicold.f
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/hifi/SEL/!svn/ver/304/trunk/code_3.1/HallMHDicold.f
+END
+HallMHDiso.f
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/hifi/SEL/!svn/ver/304/trunk/code_3.1/HallMHDiso.f
+END
+NavStok.f
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/hifi/SEL/!svn/ver/318/trunk/code_3.1/NavStok.f
+END
+cmhdn.f
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/hifi/SEL/!svn/ver/403/trunk/code_3.1/cmhdn.f
+END
+poisson.f
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/hifi/SEL/!svn/ver/304/trunk/code_3.1/poisson.f
+END
+rmhd.f
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/hifi/SEL/!svn/ver/453/trunk/code_3.1/rmhd.f
+END

@@ -1,0 +1,27 @@
+Type (G=Graph, C=Contour):	G
+
+filename(s)
+layer.bin
+
+graph title: U slices
+
+variable names
+0	x
+1	"Bx
+2	"By
+3	"Vex
+4	"Vey
+5	"VxB
+6	"Jz
+7	"Bz
+
+ix	iy	options
+0	1
+0	2
+0	3
+0	4
+0	5
+0	6
+0	7
+
+

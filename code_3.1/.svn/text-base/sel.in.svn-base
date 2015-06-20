@@ -1,0 +1,536 @@
+&algorithm_input
+
+	solve_type="condense"
+	step_type="theta"
+	theta=0.5
+
+	adapt_dt=t
+	errtol=5.e-5
+	ksp_restart=50
+	always_pc_reset=t
+
+	itmax=40
+	itmax_incr=3
+	itmax_decr=5
+	dt_incr=1.2
+	dt_decr=.6
+
+	nodal=f
+
+	quad_type="gl0"
+	polar=f
+	grid_type="sel"
+	grid_inv_type="jacobi"
+
+	adapt_grid=f
+
+	monitor=t
+	fd_test=f
+	fd_bound_test=f
+	du_diagnose=f
+
+	outfile_type="hdf5"
+	parallel_write=t
+	parallel_read=t
+/
+
+&universal_input
+
+	nx=36
+	ny=64
+	nbx=1
+	np=6
+	nq=8
+
+	xperiodic=f
+	yperiodic=f
+
+	dt=10.
+	dtmax=10.
+	tmax=10000.
+	nstep=2000
+
+	dmout=1
+	cubit_file="grid.g"
+	outdir="/home/vlukin/Research/sel_results/rmhd_anomhres/test"
+	restart_flag=f
+	restart_dir="/home/vlukin/Research/sel_results/"
+	restart_step=0
+	read_grid=f
+	grid_step=0
+	restart_time=f
+	restart_t0=0.
+/
+
+&XMHD_list
+
+	init_type="GEM"
+	source=f
+
+	di=1.
+
+	T_i=.25
+	T_e=.25
+	
+	L0=1.
+	B0=1.e3
+	lx=25.6
+	ly=12.8
+	lambda_psi=.5
+
+	epsilon=1.e-2
+/
+
+&NavStok_list
+
+	init_type="pellet2"
+
+	mu=1.e-3
+	kappa=0
+	mach=1.
+	tau=1.
+
+	alpha=1.e-1
+	ntheta=1
+
+	rho0=1.e-2
+	rhomax=1.
+	p0=1.e-1
+	pmax=1.e-1
+	lx=1.
+
+	gr_curve=2.
+/
+
+&rmhd_list
+
+	init_type="anom_hres"
+	source=f
+
+	eta=0
+	mu=1.e-4
+	nu=1.e-6
+	de_sq=0.
+	sound_rad=0.
+	j_crit=12
+
+	alfven=1.
+	mach=0.
+
+	lx=36.
+	ly=8.
+	lambda_psi=.5
+	lambda_phi=0.
+
+	gr_curve=2.
+	epsilon=1.e-4
+/
+
+&emhd_list
+
+	init_type="de_instability"
+	source=f
+	gr_curve=1.25
+
+	di=60.
+	eta=0.
+	nu=0.
+	alfven=1.
+	lx=10.
+	ly=.125
+
+	lambda_psi=2
+	epsilon=1.e-6
+/
+
+&SolarHallMHD_list
+
+	gr_curve=20.
+	cylinder=t
+
+	init_type="breakout"
+	source=f
+
+	Te_frac=0.5
+
+	di=0.
+	nu=0.
+
+	eta=0.
+	eta_case="uniform"
+	r_eta=.2
+	etavac=1.e1
+
+	mu=0.
+	kappa_par=0.
+	kappa_perp=0.
+	Dn=0.
+
+	v_peak=8682.52
+
+	b0=1.e-4
+	n0=2.e14
+	T0=4.e6
+	Rmax=20.
+/
+
+&frc_list
+	rinit=1.
+	rstag=.1
+	rphase=0.
+	tstag=100
+
+	nx=32
+	ny=24
+	np=8
+	nq=10
+	nbx=4
+
+	xperiodic=t
+	yperiodic=f
+
+	dt=1e-1
+	dtmax=1
+	tmax=100
+	nstep=100
+
+	gr_curve=0.
+
+	cylinder=t
+
+	source=f
+	equilfile="rm_equil.dat"
+	flux_inflow=f
+
+	lx=10
+	ly=1.
+	zmin=-1.
+
+	eta=2.01e-3
+	eta_case="spitzer-chodura"
+	r_eta=0.85
+	etavac=100.
+
+	mu=1.00e-2
+  	if_kinvisc=f
+	kappa_case="anisotropic"
+	kappa_par=1.00e2
+	kappa_perp=1.00e-2
+	ddiff=2.00e-3
+
+	rhomin=5.e-2
+	pmin=5.e-3
+	pmax=1.57
+
+	b0=10
+	n0=2e23
+	T0=100
+	L0=.2
+/
+
+&kink_list
+
+	init_type="m1_axial"
+	source=f
+	gr_curve=0.1
+
+	beta0=2.
+	beta_e=0.5
+	r_s=0.5
+	Rinv=0.1
+	Tconst=0.1
+
+	di=2.e-2
+	eta=1.e-5
+	mu=5.e-5
+	nu=2.e-8
+
+	t0_decay=0.
+	t0_init=0.
+	eta_0=0.
+	mu_0=0.
+	nu_0=0.
+
+	epsilon=1.e-3
+/
+
+&HallMHD_list
+
+	gr_curve=0.
+
+	cylinder=t
+
+	init_type="frc"
+	source=f
+	equil_type="gm"
+	equilfile="rm_equil.data"
+	coilfile="frc_coils.csv"
+	flux_inflow=f
+
+	lx=21.43
+	ly=1.
+	zmin=-1.
+
+	beta0=1.
+	beta_e=0.5
+	epsilon=0.
+
+	di=1.e-3
+	nu=2.e-3
+
+	eta=2.01e-3
+	eta_case="spitzer-chodura"
+	r_eta=0.85
+	etavac=100.
+
+	mu=1.00e-1
+	kappa_par=20.0
+	kappa_perp=4.02e-4
+	Dn=2.00e-3
+
+	rhomin=5.e-2
+	pmin=5.e-3
+	pmax=1.57
+
+	b0=0.0199
+	n0=7.44e19
+	T0=16.56
+	L0=.14
+/
+
+&cmhd_list
+
+	gr_curve=0.
+
+	cylinder=t
+
+	init_type="frc"
+	source=f
+	equil_type="gm"
+	equilfile="rm_equil.data"
+	coilfile="frc_coils.csv"
+	flux_inflow=f
+
+	lx=21.43
+	ly=1.
+	zmin=-1.
+
+	beta0=0.
+	epsilon=0.
+
+	eta=2.01e-3
+	eta_case="spitzer-chodura"
+	r_eta=0.85
+	etavac=100.
+
+	mu=1.00e-1
+  	if_kinvisc=f
+	kappa_case="anisotropic"
+	kappa_par=20.0
+	kappa_perp=4.02e-4
+	ddiff=2.00e-3
+
+	rhomin=5.e-2
+	pmin=5.e-3
+	pmax=1.57
+
+	b0=0.0199
+	n0=7.44e19
+	T0=16.56
+	L0=.14
+/
+
+&wave_list
+	nx=6
+	ny=4
+	np=4
+	nq=4
+	nbx=2
+
+	xperiodic=t
+	yperiodic=t
+
+	dt=1e-2
+	dt=.015625
+	dtmax=1
+	tmax=1
+	nstep=64
+
+	du_diagnose=f
+	dual_precon=t
+
+	wave_knx=1
+	wave_kny=1
+/
+
+&heat_list
+	nx=10
+	ny=10
+	nbx=1
+	np=6
+	nq=6
+
+	xperiodic=f
+	yperiodic=f
+
+	dt=1.e-6
+	dtmax=.5
+	tmax=10.
+	nstep=400
+
+	init_type="simple"
+
+	lx=1.
+	tau=1.
+	phi=5
+	lambda=.2
+/
+
+&epmhd_list
+	nx=32
+	ny=32
+	nbx=2
+	np=8
+	nq=10
+
+	xperiodic=f
+	yperiodic=f
+
+	dt=.25
+	dtmax=.5
+	tmax=30.
+	nstep=400
+
+	gr_curve=1.
+
+	init_type="islands"
+	source=f
+
+	de_sq=1.e-4
+	eta=1.e-6
+	mu=1.e-5
+	alfven=.2
+
+	lx=1.
+	ly=1.
+
+	epsilon=1e-3
+	lambda_psi=1.
+/
+
+&poisson_list
+
+	nx=8
+	ny=8
+	nbx=2
+	np=8
+
+	dt=1
+	dtmax=1
+	tmax=1000
+	nstep=20
+
+	du_diagnose=f
+	dual_precon=t
+
+	mmax=4
+ 	nmax=4
+
+	d0=1
+	d1=.9
+	d2=1
+
+	e0=1
+	e1=.5
+	e2=.9
+
+	f22=1
+	f12=.2
+	f21=.2
+
+	vx=0
+	vy=0
+
+	seed=0
+	poisson_static=f
+	rho_type="one"
+	init_type="zero"
+/
+
+&mhd_list
+	nx=4
+	ny=4
+	np=4
+	nbx=2
+
+	xperiodic=t
+	yperiodic=t
+
+	dt=.015625
+	dtmax=1
+	tmax=1
+	nstep=1
+
+	du_diagnose=f
+	dual_precon=t
+
+	beta0=.1
+	thetaB=90
+	phiB=60
+
+	init_type="shear"
+
+	knx=1
+	kny=1	
+
+/
+
+&cmhddn_list
+	nx=32
+	ny=8
+	nbx=8
+	np=6
+	nq=8
+
+	xperiodic=t
+	yperiodic=f
+
+	dt=1.e-3
+	dtmax=5.e-3
+ 	tmax=.1
+	nstep=100
+
+	init_type="trans_test"
+	cylinder=t
+	equilfile="frc.dat"
+
+	xmin=-8.
+	lx=16.
+	ly=1.
+
+	L0=.14
+	n0=1.e19
+	b0=.01
+
+	kappa_case="braginskii"
+	eta_case="spitzer-chodura"
+	etavac=1.
+
+	ddiff=1.e-4
+
+	mu=1.e-1
+	mun=1.e-2
+	kappa_n=1.e-2
+
+	initv=5.
+	initrhon=.5
+	initpn=5.e-4
+
+	atom="deuterium"
+
+	ion_fac=1.
+	recomb_fac=1.
+	cx_fac=1.
+
+	te_frac=.5
+/

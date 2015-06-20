@@ -1,0 +1,23 @@
+Type (G=Graph, C=Contour):	M2
+
+filename(s)
+contour.bin
+
+comment:	Contour Plot
+
+independent variable names
+t	time
+x	x
+y	y
+
+dependent variable names
+1	u1
+2	u2
+3	u3
+4	u4
+
+iqty	Title
+1	"Magnetic Flux
+3	"Current Density
+2	"Vorticity
+4	"Stream function

@@ -1,0 +1,24 @@
+Type (G=Graph, C=Contour):	M
+
+filename(s)
+gmat.bin
+
+comment:	Contour Plot
+
+independent variable names
+t	time
+x	x
+y	y
+
+dependent variable names
+1	g11
+2	g22
+3	g12
+4 	gdet
+5 	lambda
+
+qty	Options Title
+1	"g11
+2	"g22
+4 	"gdet
+5 	"lambda

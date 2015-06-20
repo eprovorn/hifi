@@ -1,0 +1,54 @@
+# This is the makefile for SEL on Hopper.
+# Before compiling SEL, load the necessary modules with 
+# the following commands:
+#
+# module load cray-petsc/3.4.2.0
+# module load netcdf-hdf5parallel
+#
+# Then, export PHYSICS environment variable 
+# to be the name of the [physics_templ].f application file you 
+# would like to compile with the following command:
+#
+# export PHYSICS=physics_templ
+#
+# where "physics_templ" should be replaced with the name of
+# your physics application file.
+#
+
+FFLAGS = -I../solver_3.4
+
+FC = ftn $(FFLAGS)
+F90 = ftn $(FFLAGS)
+
+# libraries
+
+LIBS = -L../solver_3.4 -lsel
+
+# objects
+
+OBJECTS = \
+	$(PHYSICS).o
+
+# targets
+
+all: libsel $(PHYSICS)
+
+libsel:
+	cd ../solver_3.4; make
+
+$(PHYSICS): $(OBJECTS) chkopts
+	$(FLINKER) -o $(PHYSICS) $(OBJECTS) $(LIBS)
+	rm -f *.cpp *.i
+
+# includes
+
+include $(PETSC_DIR)/conf/variables
+include $(PETSC_DIR)/conf/rules
+
+# dependencies
+
+$(OBJECTS): ../solver_3.4/libsel.a
+
+realclean: clean
+	rm -f *.o *.mod *.out *.bin *.dat *.fld *.diff *.err *~ temp* \
+	*.txt sel.o* $(PHYSICS)

@@ -1,0 +1,73 @@
+SEL code development project, up to version 2.3
+Copyright (c) 2002-2007, Los Alamos National Laboratory.
+HiFi (also known as SEL) code development project, versions 2.3-3.0
+Copyright (c) 2007-2009, University of Washington.
+Copyright (c) 2010, University of Washington & Naval Research Laboratory.
+Written by HiFi team with Vyacheslav S. Lukin and Alan H. Glasser as principle developers.
+All rights reserved.
+
+HiFi (SEL) User Agreement Form:
+
+HiFi (SEL) is an open source code development project for solving systems of coupled non-linear PDEs 
+on (semi-)structured logically hexahedral (rectangular) grids that abides by the following BSD-style 
+license.  The project has been supported, in part, by the U.S. Department of Energy.  Before having 
+access to the code, you must agree to the conditions of the license that serve as additional protections 
+for the HiFi (SEL) code.
+
+Terms of Agreement:
+
+Redistribution and use in source and binary forms, with or without modification, are permitted 
+provided that the following conditions are met:
+ 
+1)	Redistributions of source code must retain the above copyright notice, this list of conditions and 
+the following disclaimer.
+2)	Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+and the following disclaimer in the documentation and/or other materials provided with the 
+distribution.
+3)	Neither the name of the project nor the names of its developers may be used to endorse, 
+promote, or publish products derived from this software without specific prior written 
+permission by one of the principle developers.
+4)	Publications or figures made using results of the HiFi (SEL) code calculations will acknowledge 
+the HiFi (SEL) code.  
+5)	It is understood that the HiFi (SEL) code is still under development and thus may not contain 
+all features that users may need/want for their problem of interest. 
+6)	It is understood that the HiFi (SEL) project does not guarantee that support will always be 
+available to users of the code.  In addition, it is understood that extensive support from a HiFi 
+(SEL) team member on a particular application generally implies that any publication derived 
+from the application will include that team’s member(s) as a co-author.
+
+THIS SOFTWARE IS PROVIDED BY HiFi team ''AS IS'' AND ANY EXPRESS OR IMPLIED 
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED.  IN NO EVENT SHALL neither any HiFi team member, nor the University of 
+Washington, nor the United States Government, nor any agency thereof, nor any of their employees BE 
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+If you agree to the above terms and would like to download and/or use the HiFi (SEL) code, please fill 
+out this form and e-mail it to Vyacheslav Lukin at vlukin1@mailaps.org.
+
+HiFi (SEL) Agreement form.
+
+Name: ___________________________________________
+Organization: ___________________________________________
+Mailing Address: ___________________________________________
+Mailing Address: ___________________________________________
+Email Address: ___________________________________________
+Requested username for Web access: ___________________________________________
+Any comments or special requests:
+
+
+
+
+
+
+I agree to the above Terms of Agreement and certify that the information submitted in the form is 
+true.
+NAME: ___________________________________
+DATE: ____________________________________

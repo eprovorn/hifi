@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH -J run-hr
+#SBATCH -N 16
+#SBATCH -n 192
+#SBATCH -t 40:30:00
+#SBATCH -p exclusive
+
+source /usr/local/intel/bin/compilervars.sh intel64
+source /usr/local/intel/impi/4.0.3.008/intel64/bin/mpivars.sh
+export I_MPI_FABRICS=shm:dapl
+
+mpirun -n $SLURM_NPROCS ./sel \
+-ksp_type fgmres \
+-pc_type asm \
+-pc_asm_overlap 1 \
+-sub_pc_type lu \
+-sub_pc_factor_mat_solver_package mumps \
+-ksp_rtol 1.e-10 \
+-log_summary

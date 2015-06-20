@@ -1,0 +1,70 @@
+# This is the makefile for SEL with PETSc 3.2 on the UKMHD cluster.
+#
+# Before compiling SEL, export PHYSICS environment variable 
+# to be the name of the [physics_templ].f application file you 
+# would like to compile with the following command:
+#
+# export PHYSICS=physics_templ
+#
+# where "physics_templ" should be replaced with the name of
+# your physics application file.
+#
+
+# environment variables
+ZLIB = /scratch/MHD/adam/soft/zlib-intel
+HDF5 = /scratch/MHD/adam/soft/hdf5-par-182
+NETCDF = /scratch/MHD/adam/soft/netcdf401
+PETSC_DIR = /scratch/MHD/adam/soft/petsc-3.2-p7-int/petsc-3.2-p7
+PETSC_ARCH = arch-linux2-c-opt
+
+
+# compiler flags
+FFLAGS = -heap-arrays 64 -mGLOB_override_limits -O3 -xHOST \
+	 -I../solver_3.2 \
+	 -I$(ZLIB)/include \
+	 -I$(NETCDF)/include \
+	 -I$(HDF5)/lib \
+	 -I$(HDF5)/include \
+
+#/usr/local/intel/composer_xe_2011_sp1.6.233/compiler/lib/intel64 -lirc
+#	$(PETSC_FORTRAN_LIB) \
+#	$(PETSC_LIB) \
+# libraries
+#-L/usr/local/intel/composer_xe_2011_sp1.6.233/compiler/lib/intel64 -lirc -lirc_s -lcilkrts -ldecimal -limf\
+
+LIBS = \
+	-L../solver_3.2 -lsel \
+	$(PETSC_LIB) \
+	-L$(ZLIB)/lib -lz \
+	-Wl,-rpath,$(ZLIB)/lib -lz \
+	-L$(NETCDF)/lib -lnetcdf \
+	-L$(HDF5)/lib -lhdf5 -lhdf5_fortran -lhdf5_hl \
+	-Wl,-rpath,$(HDF5)/lib -lhdf5 -lhdf5_fortran -lhdf5_hl \
+
+# objects
+OBJECTS = \
+	$(PHYSICS).o $(FFLAGS)
+
+# targets
+
+all: libsel $(PHYSICS)
+
+libsel:
+	cd ../solver_3.2; make
+
+$(PHYSICS): $(OBJECTS) chkopts
+	$(FLINKER) -o $(PHYSICS) $(OBJECTS) $(LIBS) $(FFLAGS)
+	rm -f *.cpp *.i
+
+## includes
+
+include $(PETSC_DIR)/conf/variables
+include $(PETSC_DIR)/conf/rules
+
+# dependencies
+
+$(OBJECTS): ../solver_3.2/libsel.a
+
+realclean: clean
+	rm -f *.o *.mod *.bin *.dat *.fld *.diff *.err *~ temp* \
+	sel.o* $(PHYSICS)

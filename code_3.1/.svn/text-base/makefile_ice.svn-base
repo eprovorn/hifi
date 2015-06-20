@@ -1,0 +1,65 @@
+# This is the makefile for SEL with PETSc 3.1 on the ICE cluster.
+#
+# Before compiling SEL, export PHYSICS environment variable 
+# to be the name of the [physics_templ].f application file you 
+# would like to compile with the following command:
+#
+# export PHYSICS=physics_templ
+#
+# where "physics_templ" should be replaced with the name of
+# your physics application file.
+#
+
+# environment variables
+
+NETCDF = /mnt/export/opt/libs/netcdf
+HDF5 = /mnt/export/opt/libs/hdf5-parallel_10.1/1.8.5
+PETSC_DIR = /mnt/export/opt/libs/petsc-3.1-p7
+PETSC_ARCH = linux-intel-opt
+
+# compiler flags
+
+FFLAGS = -g -mGLOB_override_limits -traceback -vec-report0 \
+	 -I../solver_3.1 \
+	 -I$(NETCDF)/include \
+	 -I$(HDF5)/lib \
+	 -I$(HDF5)/include
+
+# libraries
+
+LIBS = \
+	-L../solver_3.1 -lsel \
+	$(PETSC_FORTRAN_LIB) \
+	$(PETSC_LIB) \
+	-L$(NETCDF)/lib -lnetcdf \
+	-L$(HDF5)/lib -lhdf5 -lhdf5_fortran -lz \
+	-Wl,-rpath,$(HDF5)/lib -lhdf5 -lhdf5_fortran -lz
+
+# objects
+
+OBJECTS = \
+	$(PHYSICS).o
+
+# targets
+
+all: libsel $(PHYSICS)
+
+libsel:
+	cd ../solver_3.1; make
+
+$(PHYSICS): $(OBJECTS) chkopts
+	$(FLINKER) -o $(PHYSICS) $(OBJECTS) $(LIBS)
+	rm -f *.cpp *.i
+
+# includes
+
+include $(PETSC_DIR)/conf/variables
+include $(PETSC_DIR)/conf/rules
+
+# dependencies
+
+$(OBJECTS): ../solver_3.1/libsel.a
+
+realclean: clean
+	rm -f *.o *.mod *.out *.bin *.dat *.fld *.diff *.err *~ temp* \
+	sel.o* $(PHYSICS)

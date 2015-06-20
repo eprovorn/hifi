@@ -1,0 +1,27 @@
+Type (G=Graph, C=Contour):	M2
+
+filename(s)
+eta.bin
+
+comment:	Contour Plot
+
+independent variable names
+t	time
+x	x
+y	y
+
+dependent variable names
+1	eta
+2	eta_spitz
+3	eta_chod
+4	j
+5	T
+6	eta_j2
+
+iqty	Title
+1	"eta
+2	"eta_spitz
+3	"eta_chod
+4	"j
+5	"T
+6	"eta_j2

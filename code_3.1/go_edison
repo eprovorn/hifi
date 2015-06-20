@@ -1,0 +1,53 @@
+#PBS -N	SEL
+#PBS -A	m1255
+#PBS -o	pbs.out
+#PBS -e	pbs.err
+#PBS -j	oe
+#PBS -S	/bin/bash
+#PBS -m	abe
+#PBS -q	debug
+#PBS -l walltime=00:03:00
+#PBS -l mppwidth=576
+#PBS -l mppnppn=24
+
+cd $PBS_O_WORKDIR
+export CRAY_ROOTFS=DSL
+
+aprun -n 576 -N 24 -S 12 ./sel \
+-ksp_type fgmres \
+-pc_type asm \
+-pc_asm_overlap 1 \
+-sub_pc_type lu \
+-sub_pc_factor_mat_solver_package superlu_dist \
+-ksp_rtol 1.e-10 \
+-log_summary \
+> log.out 2> log.err
+
+# Direct SuperLU_dist solve
+#-ksp_type preonly \
+#-pc_type lu \
+#-pc_factor_mat_solver_package superlu_dist \
+
+# Flexible GMRES iterative method
+#-ksp_type fgmres \
+
+# Additive Schwartz preconditioning
+#-pc_type asm \
+#-pc_asm_overlap 1 \
+
+# Block Jacobi preconditioning
+#-pc_type bjacobi \
+
+# Direct SuperLU or Mumps sub-preconditioning
+#-sub_pc_type lu \
+#-sub_pc_factor_mat_solver_package superlu \
+
+# ILU sub-preconditioning
+#-sub_pc_type ilu \
+
+# Sub-preconditioning options
+#-sub_pc_factor_levels 2 \
+#-sub_pc_factor_mat_ordering_type qmd \
+#-sub_pc_factor_shift_type nonzero \
+#-sub_pc_factor_shift_amount 1.e-12 \
+#-sub_pc_factor_zeropivot 1e-20 \

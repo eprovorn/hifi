@@ -1,0 +1,24 @@
+Type (G=Graph, C=Contour):	M2
+
+filename(s)
+Ucontour.bin
+
+comment:	Contour Plot
+
+independent variable names
+t	time
+x	x
+y	y
+
+dependent variable names
+1	u1
+2	u2
+3	u3
+4	u4
+
+iqty	Title
+1	"E-field
+2	"-VxB
+3	"Vx
+4	"Vy
+

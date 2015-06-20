@@ -1,0 +1,15 @@
+Type (G=Graph, C=Contour):	G
+
+filename(s)
+belgrid.bin
+
+graph title: grid
+
+variable names
+0	x
+1	y
+
+
+ix	iy	options
+0	1
+

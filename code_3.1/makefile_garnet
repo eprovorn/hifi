@@ -1,0 +1,65 @@
+# This is the makefile for SEL on Garnet.
+# Before compiling SEL, load the necessary modules with 
+# the following commands:
+#
+# module load petsc
+# module load netcdf-hdf5parallel
+#
+# Then, export PHYSICS environment variable 
+# to be the name of the [physics_templ].f application file you 
+# would like to compile with the following command:
+#
+# export PHYSICS=physics_templ
+#
+# where "physics_templ" should be replaced with the name of
+# your physics application file.
+#
+
+PETSC_DIR = /usr/local/usp/PETtools/CE/MATH/petsc-3.2-p7
+PETSC_ARCH = XE6-PGI-O
+
+# PGI compiler flags
+FFLAGS = -O3 -Munroll=c:4 -Msave -I../solver_3.2
+# Cray compiler flags
+#FFLAGS = -I../solver_3.2
+
+FC = ftn $(FFLAGS)
+F90 = ftn $(FFLAGS)
+
+# libraries
+
+LIBS = \
+	-L../solver_3.2 -lsel \
+	$(PETSC_FORTRAN_LIB) \
+	$(PETSC_LIB) \
+	$(HDF5) \
+	$(NETCDF)
+
+# objects
+
+OBJECTS = \
+	$(PHYSICS).o
+
+# targets
+
+all: libsel $(PHYSICS)
+
+libsel:
+	cd ../solver_3.2; make
+
+$(PHYSICS): $(OBJECTS) chkopts
+	$(FLINKER) -o $(PHYSICS) $(OBJECTS) $(LIBS)
+	rm -f *.cpp *.i
+
+# includes
+
+include $(PETSC_DIR)/conf/variables
+include $(PETSC_DIR)/conf/rules
+
+# dependencies
+
+$(OBJECTS): ../solver_3.2/libsel.a
+
+realclean: clean
+	rm -f *.o *.mod *.out *.bin *.dat *.fld *.diff *.err *~ temp* \
+	sel.o* $(PHYSICS)

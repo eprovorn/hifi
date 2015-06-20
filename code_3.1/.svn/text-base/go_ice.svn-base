@@ -1,0 +1,60 @@
+#!/bin/bash
+#PBS -N sel
+#PBS -o sel.out
+#PBS -e sel.err
+#PBS -m abe
+#PBS -q highq
+
+#PBS -l nodes=8:ppn=8,walltime=01:00:00
+
+export MPI_GROUP_MAX=1024
+export MPI_DSM_DISTRIBUTE=1
+
+cd $PBS_O_WORKDIR
+
+PROCS=$(wc -l $PBS_NODEFILE | awk '{print $1}')
+
+mpiexec_mpt -np $PROCS ./sel \
+-ksp_type preonly \
+-pc_type lu \
+-pc_factor_mat_solver_package superlu_dist \
+-ksp_rtol 1.e-10 \
+-log_summary > log.out 2> log.err
+
+# To run SEL jobs on the ICE cluster use the following command:
+# 'msub go'
+# To monitor the progress use commands:
+# 'mshow' and 'qstat'
+
+# Direct SuperLU_dist or Mumps solve
+#-ksp_type preonly \
+#-pc_type lu \
+#-pc_factor_mat_solver_package superlu_dist \
+
+# Flexible GMRES iterative method
+#-ksp_type fgmres \
+
+# Additive Schwartz preconditioning
+#-pc_type asm \
+#-pc_asm_overlap 1 \
+
+# Block Jacobi preconditioning
+#-pc_type bjacobi \
+
+# Direct SuperLU or Mumps sub-preconditioning
+#-sub_pc_type lu \
+#-sub_pc_factor_mat_solver_package superlu \
+
+# ILU sub-preconditioning
+#-sub_pc_type ilu \
+
+# Sub-preconditioning options
+#-sub_pc_factor_levels 2 \
+#-sub_pc_factor_mat_ordering_type qmd \
+#-sub_pc_factor_shift_type nonzero \
+#-sub_pc_factor_shift_amount 1.e-12 \
+#-sub_pc_factor_zeropivot 1e-20 \
+
+# Debugger Options
+#-start_in_debugger noxterm \
+#-debugger_nodes 0 \

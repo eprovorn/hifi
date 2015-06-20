@@ -1,0 +1,20 @@
+Type (G=Graph, M2=Contour):	M2
+
+filename(s)
+contour.bin
+
+
+comment:	Contour Plot
+
+independent variable names
+t	time
+x	x
+y	y
+
+dependent variable names
+1	u1
+2	du1
+
+iqty	Title
+1	"Temperature
+;2	"Temperature change

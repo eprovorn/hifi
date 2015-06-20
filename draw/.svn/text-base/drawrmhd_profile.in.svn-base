@@ -1,0 +1,19 @@
+Type (G=Graph, C=Contour):	G
+
+filename(s)
+Uprofile.bin
+
+graph title: U slices
+
+variable names
+0	x
+1	"B
+2	"V
+3	"VxB
+4	"J
+
+ix	iy	options
+0	1
+0	2
+0	3
+0	4

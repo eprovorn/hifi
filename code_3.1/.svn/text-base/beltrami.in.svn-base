@@ -1,0 +1,21 @@
+&beltrami_input
+
+	solve_type="condense"
+
+	itmax=80
+	itmax_decr=5
+
+	adapt_start=10
+	gridtol1=2.e-3
+	gridtol2=1.e-1
+
+	bel_diagnose=f
+	bel_phifac=1.
+/
+
+&output_control
+
+	nx_grid=64
+	ny_grid=64
+	npoints=128
+/

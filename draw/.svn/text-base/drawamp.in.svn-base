@@ -1,0 +1,44 @@
+Type (G=Graph, C=Contour):	G
+
+filename(s)
+amp.bin
+
+graph title: U slices
+
+variable names
+0	t
+1	"1
+2	"2
+3	"3
+4	"4
+5	"5
+6	"6
+7	"7
+8	"8
+9	"errx1
+10	"errx2
+11	"errx3
+12	"errx4
+13	"errx5
+14	"errx6
+15	"errx7
+16	"errx8
+17	"erry1
+18	"erry2
+19	"erry3
+20	"erry4
+21	"erry5
+22	"erry6
+23	"erry7
+24	"erry8
+
+ix	iy	options
+0	9 17
+0	10 18
+0	11 19
+0	12 20
+0	13 21
+0	14 22
+0	15 23
+0	16 24
+

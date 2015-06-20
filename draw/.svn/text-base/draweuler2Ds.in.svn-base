@@ -1,0 +1,24 @@
+Type (G=Graph, C=Contour):	G
+
+filename(s)
+Uprofile.bin
+
+graph title: Plots
+
+variable names
+0	x
+1	Density
+2	x-Momentum
+3	y-Momentum
+4	x-Velocity
+5	Energy
+6	Pressure
+
+
+ix	iy	options
+0	1	Density	
+0	2	x-Momentum
+0	3	y-Momentum
+0	4	x-Velocity
+0	5	Energy
+0	6	Pressure

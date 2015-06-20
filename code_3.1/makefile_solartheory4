@@ -1,0 +1,66 @@
+# This is the makefile for SEL with PETSc 3.4 on the solartheory4 machine.
+#
+# Before compiling SEL, export PHYSICS environment variable 
+# to be the name of the [physics_templ].f application file you 
+# would like to compile with the following command:
+#
+# export PHYSICS=physics_templ
+#
+# where "physics_templ" should be replaced with the name of
+# your physics application file.
+#
+
+# environment variables
+
+HDF5=hdf5-parallel-1.8.12
+HDF5_DIR = $(HOME)/opt/$(HDF5)
+NETCDF_DIR = $(HOME)/opt/netcdf
+PETSC_DIR = $(HOME)/opt/petsc-3.4.4
+PETSC_ARCH = linux-intel-opt
+
+# compiler flags
+
+FFLAGS = -heap-arrays -mGLOB_override_limits -traceback -vec-report0 \
+	 -I../solver_3.4 \
+	 -I$(NETCDF_DIR)/include \
+	 -I$(HDF5_DIR)/lib \
+	 -I$(HDF5_DIR)/include
+
+# libraries
+
+LIBS = \
+	-L../solver_3.4 -lsel \
+	$(PETSC_FORTRAN_LIB) \
+	$(PETSC_LIB) \
+	-L$(NETCDF_DIR)/lib -lnetcdf \
+	-L$(HDF5_DIR)/lib -lhdf5 -lhdf5_fortran \
+	-Wl,-rpath,$(HDF5_DIR)/lib -lhdf5 -lhdf5_fortran
+
+# objects
+
+OBJECTS = \
+	$(PHYSICS).o
+
+# targets
+
+all: libsel $(PHYSICS)
+
+libsel:
+	cd ../solver_3.4; make
+
+$(PHYSICS): $(OBJECTS) chkopts
+	$(FLINKER) -o $(PHYSICS) $(OBJECTS) $(LIBS)
+	rm -f *.cpp *.i
+
+# includes
+
+include $(PETSC_DIR)/conf/variables
+include $(PETSC_DIR)/conf/rules
+
+# dependencies
+
+$(OBJECTS): ../solver_3.4/libsel.a
+
+realclean: clean
+	rm -f *.o *.mod *.out *.bin *.dat *.fld *.diff *.err *~ temp* \
+	sel.o* $(PHYSICS)

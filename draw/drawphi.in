@@ -1,0 +1,17 @@
+Type (G=Graph, C=Contour):	M
+
+filename(s)
+gmat.bin
+
+comment:	Contour Plot
+
+independent variable names
+t	time
+x	x
+y	y
+
+dependent variable names
+1	u1
+
+iqty	Title
+1	"phi

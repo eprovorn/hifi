@@ -1,0 +1,58 @@
+# This is the makefile for post on Franklin
+# Before compiling, load the necessary modules with 
+# the following commands:
+#
+# module load hdf5-parallel
+#
+
+# PGI compiler flags
+#FFLAGS = -O3 -Munroll=c:4 -Msave
+# Cray compiler flags
+FFLAGS = -em -F -O3 -Onopattern
+
+FC = ftn $(FFLAGS)
+F90 = ftn $(FFLAGS)
+
+OBJS = 	\
+	io.o \
+	local.o \
+	jacobi.o \
+	plotter.o \
+	transport.o \
+	postxmhd.o \
+	post4field.o \
+	post2fluid.o \
+	postpn.o \
+	postbreakout.o \
+	postmast.o \
+	posteuler.o \
+	helix.o \
+	beltrami.o \
+	slice.o \
+	post.o
+
+post: $(OBJS) 
+	$(F90) -o post $(OBJS) $(HDF5)
+	rm -f *.cpp
+
+
+#dependencies:
+local.o: io.o
+jacobi.o: local.o
+slice.o: jacobi.o
+transport.o: local.o
+plotter.o: slice.o
+post4field.o: plotter.o
+postxmhd.o: plotter.o transport.o
+post2fluid.o: postxmhd.o
+postpn.o: postxmhd.o
+postbreakout.o: postxmhd.o
+postmast.o: postxmhd.o
+posteuler.o: plotter.o
+helix.o: plotter.o
+beltrami.o: slice.o
+post.o: post4field.o post2fluid.o helix.o beltrami.o posteuler.o \
+	postpn.o postbreakout.o postmast.o
+
+clean:
+	rm -f *.o *.mod *.out *.bin *.fld *~ temp* post

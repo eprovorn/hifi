@@ -1,0 +1,99 @@
+&algorithm_input
+
+	solve_type="condense"
+	step_type="theta"
+	theta=0.5
+
+	adapt_dt=t
+	errtol=1.e-4
+	ksp_restart=100
+	always_pc_reset=t
+
+	itmax=40
+	itmax_incr=3
+	itmax_decr=5
+	dt_incr=1.5
+	dt_decr=.8
+
+	nodal=f
+
+	quad_type="gl0"
+	polar=f
+	grid_type="sel"
+	grid_inv_type="jacobi"
+
+	adapt_grid=f
+
+	monitor=t
+	fd_test=f
+	fd_bound_test=f
+	du_diagnose=f
+
+	outfile_type="hdf5"
+	parallel_write=t
+	parallel_read=t
+/
+
+&universal_input
+
+	dtmin=1.e-8
+
+	dmout=10
+	outdir="/scratch/scratchdirs/eprovorn/mast"
+	restart_flag=f
+	restart_dir="data"
+	restart_step=1
+	read_grid=t
+	grid_step=0
+	restart_time=t
+	restart_t0=0.
+/
+
+&MAST_list
+	nx=480
+	ny=360
+	nbx=30
+	np=4
+	nq=4
+
+	xperiodic=f
+	yperiodic=f
+
+	dt=1.e-1
+	dtmax=1.e-1
+	tmax=80.0
+	nstep=8000
+
+	init_type="cylFF"
+	source=f
+	gr_curve=0.2
+
+	di=0.145
+
+	eta=0.0
+	eta_case="spitzer-chodura"
+	etavac=1.e-3
+
+	nu=2.5e-10
+	nu_case="nulayer"
+	r_nu=0.06
+	nuvac=1.e-6
+	Dn=1.e-3
+
+	mu=5.e-4
+
+	kappa_case="braginskii"
+	kappa_min=5.e-5
+	kappa_max=10.
+	
+	ieheat=3.0
+	
+	n0=5.0e18
+	b0=0.5
+	L0=1.0
+	
+	Bguide=1.0
+
+	lx=1.8
+	ly=4.4
+/

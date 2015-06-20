@@ -1,0 +1,73 @@
+# This is the makefile for libsel.a with PETSc 3.1 on the ICE cluster.
+
+HDF5 = /mnt/export/opt/libs/hdf5-parallel_10.1/1.8.5
+NETCDF = /mnt/export/opt/libs/netcdf
+PETSC_DIR = /mnt/export/opt/libs/petsc-3.2-p7
+PETSC_ARCH = linux-intel-opt
+
+FFLAGS = -mGLOB_override_limits -g -traceback -vec-report0 \
+	 -I$(NETCDF)/include \
+	 -I$(HDF5)/lib \
+	 -I$(HDF5)/include
+
+OBJECTS = \
+	io.o \
+	local.o \
+	debug.o \
+	spline.o \
+	bicube.o \
+	jacobi.o \
+	cubit.o \
+	beltrami.o \
+	extra.o \
+	transport.o \
+	job2.o \
+	p2_sel.o \
+	p2_ct.o \
+	p2_condense.o \
+	p2_schur.o \
+	p2_interior.o \
+	p2_edge.o \
+	p2_rj.o \
+	fd.o \
+	p2_diagnose.o \
+	p2_snes.o \
+	p2_grid.o \
+	p2_advance.o \
+	driver.o \
+
+libsel: $(OBJECTS) chkopts
+	ar -r libsel.a $(OBJECTS)
+	rm -f *.cpp *.i
+
+include $(PETSC_DIR)/conf/variables
+include $(PETSC_DIR)/conf/rules
+
+# dependencies
+
+local.o: io.o
+debug.o: local.o
+spline.o: local.o
+bicube.o: spline.o
+jacobi.o: local.o
+cubit.o: local.o
+beltrami.o: jacobi.o bicube.o	
+extra.o: bicube.o
+transport.o: local.o
+job2.o: cubit.o beltrami.o
+p2_sel.o: job2.o debug.o
+p2_diagnose.o: p2_sel.o
+p2_ct.o: p2_diagnose.o
+fd.o: p2_sel.o
+p2_condense.o: p2_sel.o
+p2_schur.o: p2_ct.o p2_condense.o
+p2_interior.o: p2_ct.o
+p2_edge.o: p2_ct.o
+p2_rj.o: p2_interior.o p2_edge.o p2_schur.o
+p2_snes.o: p2_rj.o
+p2_grid.o: p2_snes.o
+p2_advance.o: fd.o p2_grid.o
+driver.o: p2_advance.o
+
+realclean: clean
+	rm -f *.o *.mod *.diff *~ libsel.a

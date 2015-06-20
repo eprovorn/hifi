@@ -1,0 +1,37 @@
+Type (G=Graph, C=Contour):	G
+
+filename(s)
+xt.bin
+
+graph title: U slices
+
+variable names
+0	eta
+1	t
+2	"rho
+3	"x-ion mom
+4	"y-ion mom
+5	"z-ion mom
+6	"nA_x
+7	"nA_y
+8	"nA_z
+9	"pi
+10	"pe
+11	"x-el mom
+12	"y-el mom
+13	"z-el mom
+
+
+ix	iy	options
+0	2
+0	3
+;0	4
+0	5
+0	6
+;0	7
+0	8
+0	9
+0	10
+0	11
+;0	12
+0	13

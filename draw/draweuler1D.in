@@ -1,0 +1,29 @@
+Type (G=Graph, M2=Contour):	M2
+
+filename(s)
+contour.bin
+
+
+comment:	Contour Plot
+
+independent variable names
+t	time
+x	x
+y	y
+
+dependent variable names
+1	u1
+2	u2
+3	u3
+4	du1
+5	du2
+6	du3
+
+iqty	Title
+1	"Density*Area
+2	"Momentum*Area
+3	"Energy*Area
+;4	"
+;5	"
+;6	"
+
