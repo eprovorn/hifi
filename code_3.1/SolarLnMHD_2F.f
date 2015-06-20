@@ -633,8 +633,6 @@ c Elena: 1 - left, 4 - bottom, 2 - top, 3 - right
          left%static(4)=.TRUE.
          left%static(6)=.TRUE.
          
-c         right%static(1:9)=.TRUE.
-         
          right%bc_type(1:3)="zeroflux"
          right%bc_type(5)="zeroflux"
          right%bc_type(7:9)="zeroflux"
@@ -2188,8 +2186,6 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
       SELECT CASE(init_type)
       CASE("TwoFR")
-c        x = ksi*lx/2.
-c        y = phi*ly/2.
         x=lx*(x_curve*ksi**3 + ksi)/(x_curve + one)
         y=ly*(y_curve*phi**2 + phi)/(y_curve + one)
       CASE("Chen-Shibata")
