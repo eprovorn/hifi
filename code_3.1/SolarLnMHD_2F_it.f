@@ -2,6 +2,8 @@ c-----------------------------------------------------------------------
 c     file SolarLnMHD_2F.f
 c     contains specifications for 2-pressure MHD model with gravity
 c     and evolving ln(density).
+c June 22 2015
+c Elena modified this physics moduke to isothermal case
 c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c      module organization.
@@ -64,7 +66,7 @@ c-----------------------------------------------------------------------
      $     xi_norm=1.,gamma_fac=1.,gravity=1.,v_chod_norm=1.,
      $     etac_norm=1.,etas_norm=1.,hyper_eta=0.,htr=1.,wtr=1.,
      $     Tph=1.,Tco=1.,p0=1.,y_eta=1.,y0_eta=0.,mu_min=0.,epsilon=0.,
-     $     ddiff = 0.
+     $     ddiff = 0., c_rho=0.
 
       CONTAINS
 c-----------------------------------------------------------------------
@@ -166,14 +168,15 @@ c-----------------------------------------------------------------------
 c Elena begin            
       CASE("CurrentSheet-hlf")
 c uniform density
-        u(1,:,:)=LOG(one)
+        u(1,:,:)=LOG(one + c_rho*(one - (TANH(x/h_psi))**2))
 c h_psi - with of current sheet        
         u(2,:,:)= h_psi*LOG(COSH(x/h_psi))
-        u(3,:,:)= SQRT(bz0**2 + one - TANH(x/h_psi)**2)-bz0
+        u(3,:,:)= SQRT(bz0**2 + one - (TANH(x/h_psi))**2
+     $            +beta0*(one - (EXP(u(1,:,:)))**(gamma)))-bz0
 c uniform electron and ion pressure u(8) u(9)
-        u(7,:,:)=1/h_psi/COSH(x/h_psi)/COSH(x/h_psi)      
-        u(8,:,:)=0.25_r8*beta0
-        u(9,:,:)=0.25_r8*beta0        
+        u(7,:,:)=1._r8/h_psi/COSH(x/h_psi)/COSH(x/h_psi)      
+c        u(8,:,:)=0.25_r8*beta0
+c        u(9,:,:)=0.25_r8*beta0        
 c Elena end      
       CASE("Chen-Shibata","Chen-Shibata-hlf")
         r=SQRT(x**2+(y-h_psi)**2)/rad0
@@ -322,7 +325,7 @@ c-----------------------------------------------------------------------
      $     eta_chrsp,eta_vbl,j_c,etavac,mu,mu_vbl,mu_min,kappa_case,
      $     kappa_prp,kappa_min,kappa_max,ieheat,n0,b0,beta0,lx,ly,
      $     x_curve,y_curve,rad0,x0,c_psi,y0_eta,y_eta,c_psi_e,h_psi,t_e,
-     $     hyper_eta,bz0,p0,R0,epsilon, ddiff
+     $     hyper_eta,bz0,p0,R0,epsilon, ddiff, c_rho
 c Elena: source? cylinder?(geometry?) eta? - resistivity
 c Elena: mu - viscosity? mu_vbl? kappa? 
 c Elena: n0,b0,beta0 - normalizations?
@@ -448,6 +451,7 @@ c-----------------------------------------------------------------------
       CALL MPI_Bcast(hyper_eta,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
       CALL MPI_Bcast(epsilon,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
       CALL MPI_Bcast(ddiff,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
+      CALL MPI_Bcast(c_rho,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
 c-----------------------------------------------------------------------
 c     set PDE flags
 c-----------------------------------------------------------------------
@@ -568,11 +572,11 @@ c Elena: 1 - left, 4 - bottom, 2 - top, 3 - right
          
          left%bc_type(1:3)="zeroflux" ! symmetric
          left%bc_type(5)="zeroflux"   ! symmetric
-         left%bc_type(7:9)="zeroflux" ! only x,z-momentum asymmetric
+         left%bc_type(7)="zeroflux" ! only x,z-momentum asymmetric
          left%static(4)=.TRUE.
          left%static(6)=.TRUE.
          
-         right%static(3:9)=.TRUE.
+         right%static(3:7)=.TRUE.
          right%bc_type(1)="natural"
          
       CASE("Chen-Shibata") !boundary condition type
@@ -698,11 +702,6 @@ c Elena begin
                c(i,:,:)=nhat(1,:,:)*(ux(i,:,:)-u(i,:,:)*ux(1,:,:))
      $         +nhat(2,:,:)*(uy(i,:,:)-u(i,:,:)*uy(1,:,:))              
             ENDDO      
-c thermal isolator gradT_e = 0. gradT_i =0.           
-            DO i=8,9
-               c(i,:,:)=nhat(1,:,:)*(ux(i,:,:)-u(i,:,:)*ux(1,:,:))
-     $         +nhat(2,:,:)*(uy(i,:,:)-u(i,:,:)*uy(1,:,:)) 
-            ENDDO 
          END SELECT     
 c Elena end             
       CASE("Chen-Shibata") !BC equations for rhs
@@ -917,16 +916,6 @@ c Elena begin
             c_uy(6,6,:,:)=nhat(2,:,:)
             c_ux(6,1,:,:)=-nhat(1,:,:)*u(6,:,:)
             c_uy(6,1,:,:)=-nhat(2,:,:)*u(6,:,:)
-            c_u(8,8,:,:)=-nhat(1,:,:)*ux(1,:,:) - nhat(2,:,:)*uy(1,:,:)
-            c_ux(8,8,:,:)=nhat(1,:,:)
-            c_uy(8,8,:,:)=nhat(2,:,:)
-            c_ux(8,1,:,:)=-nhat(1,:,:)*u(8,:,:)
-            c_uy(8,1,:,:)=-nhat(2,:,:)*u(8,:,:)   
-            c_u(9,9,:,:)=-nhat(1,:,:)*ux(1,:,:) - nhat(2,:,:)*uy(1,:,:)
-            c_ux(9,9,:,:)=nhat(1,:,:)
-            c_uy(9,9,:,:)=nhat(2,:,:)
-            c_ux(9,1,:,:)=-nhat(1,:,:)*u(9,:,:)
-            c_uy(9,1,:,:)=-nhat(2,:,:)*u(9,:,:)   
          END SELECT     
 c Elena end         
       CASE("Chen-Shibata") !derivatives of BC equations
@@ -1841,7 +1830,7 @@ c-----------------------------------------------------------------------
       CASE("Chen-Shibata-hlf","CS-stratified", "CurrentSheet-hlf")
         x=lx*0.5*(x_curve*ksi**3 + ksi)/(x_curve + 1.)
 c        y=ly*(y_curve*phi**2 + phi)/(y_curve+one)
-        y=ly*(y_curve*phi**3 + phi)/(y_curve+one)
+        y=ly*(y_curve*phi**2 + phi)/(y_curve+one)
 c        y=((3.4*phi)**3 - 3.*(3.4*phi)**2 + 4.*(3.4*phi))/5.
       CASE("CurrentSheet")
         y=ly*(y_curve*phi**2 + phi)/(y_curve+one)

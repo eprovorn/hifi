@@ -1,0 +1,79 @@
+&post_input
+
+	indir="/scratch/scratchdirs/eprovorn/fadeev_128x32_rst1"
+	postout="/scratch/scratchdirs/eprovorn/fadeev_128x32_rst1/data"
+	out_type="hdf5"
+
+	job_type="."
+
+	nxw0=6
+	nyw0=6
+
+	drawgrid=f
+	polar_crd=f
+
+	mfile=3000
+	stride=20
+
+	contour=t
+	min_value=1.e-16
+
+	flag1d=f
+	flag2d=f
+
+	cray_flag=t
+/
+
+&slice_input
+	xt_flag=f
+	yt_flag=f
+	init_flag=f
+	final_flag=f
+
+	nxs=100
+	nys=100
+
+	xs=.5
+	ys=.5
+/
+
+&xmhd_input
+	flag_eta=f
+	flag_kappa=f
+/
+
+&twofluid_input
+
+	x1=0.
+	y1=0.
+	x2=0.
+	y2=0.
+	UxyT_name="."
+	Uprofile_name="."
+	dUdt_name="."
+	VecSqInt_name="."
+/
+
+&fourfield_input
+
+	eta=0.
+	mu=0.
+	skin=0.
+	hall=0.
+
+	x0=0.
+	y0=0.
+	UxyT_name="."
+	VecSqInt_name="."
+/
+
+&helix_input
+
+	x1=0.
+	y1=0.
+	x2=0.
+	y2=0.
+	q0_r=0.
+	q0_delr=0.
+	r_m=0.
+/
