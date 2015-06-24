@@ -1,7 +1,7 @@
 &post_input
 
-	indir="/scratch/scratchdirs/eprovorn/CS_isotherm_rst1"
-	postout="/scratch/scratchdirs/eprovorn/CS_isotherm_rst1/data"
+	indir="/scratch/scratchdirs/eprovorn/CS_isotherm_noBz"
+	postout="/scratch/scratchdirs/eprovorn/CS_isotherm_noBz/data"
 	out_type="hdf5"
 
 	job_type="."
