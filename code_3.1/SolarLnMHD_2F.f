@@ -574,6 +574,10 @@ c-----------------------------------------------------------------------
       CASE("CurrentSheet")
          u(2,:,:) = u(2,:,:) + c_psi*EXP(-x**2/(half*h_psi)**2)
      $        *EXP(-(y-3.*htr)**2/(two*h_psi)**2)
+      CASE("TwoFR")
+         u(2,:,:) = u(2,:,:) 
+     $             + epsilon*COS(x/lambda)*COS(y/lambda)
+c   cos(y/ly*pi/2.)
       END SELECT
       RETURN
       END SUBROUTINE physics_init
