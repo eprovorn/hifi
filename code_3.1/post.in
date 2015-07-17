@@ -1,7 +1,7 @@
 &post_input
 
-	indir="/scratch/scratchdirs/eprovorn/fadeev_disturb_64x32np6"
-	postout="/scratch/scratchdirs/eprovorn/fadeev_disturb_64x32np6/data"
+	indir="/scratch/scratchdirs/eprovorn/fadeev_LowCorona_64x32np6"
+	postout="/scratch/scratchdirs/eprovorn/fadeev_LowCorona_64x32np6/data"
 	out_type="hdf5"
 
 	job_type="."
@@ -13,7 +13,7 @@
 	polar_crd=f
 
 	mfile=3000
-	stride=40
+	stride=15
 
 	contour=t
 	min_value=1.e-16

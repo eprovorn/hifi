@@ -576,7 +576,7 @@ c-----------------------------------------------------------------------
      $        *EXP(-(y-3.*htr)**2/(two*h_psi)**2)
       CASE("TwoFR")
          u(2,:,:) = u(2,:,:) 
-     $             + epsilon*COS(x/lambda)*COS(y/lambda)
+     $             + epsilon*SIN(x/lx/lambda)*COS(y*pi/ly/2.)
 c   cos(y/ly*pi/2.)
       END SELECT
       RETURN
