@@ -66,7 +66,7 @@ c-----------------------------------------------------------------------
      $     xi_norm=1.,gamma_fac=1.,gravity=1.,v_chod_norm=1.,
      $     etac_norm=1.,etas_norm=1.,hyper_eta=0.,htr=1.,wtr=1.,
      $     Tph=1.,Tco=1.,p0=1.,y_eta=1.,y0_eta=0.,mu_min=0.,epsilon=0.,
-     $     ddiff = 0., c_rho=0.
+     $     ddiff = 0., c_rho = 0., hlfw = 0., lambda = 0.
 
       CONTAINS
 c-----------------------------------------------------------------------
@@ -179,7 +179,20 @@ c uniform electron and ion pressure u(8) u(9)
         u(7,:,:)=1._r8/h_psi/COSH(x/h_psi)/COSH(x/h_psi)      
 c        u(8,:,:)=0.25_r8*beta0
 c        u(9,:,:)=0.25_r8*beta0        
-c Elena end      
+c Elena end  
+      CASE("TwoFR")
+        u(1,:,:) = LOG(one)
+        u(2,:,:) = - lambda*LOG(COSH(y/lambda)+hlfw*COS(x/lambda))
+        u(3,:,:) = SQRT(bz0*bz0 + (1. - hlfw**2)/
+     $             (COSH(y/lambda) + hlfw*COS(x/lambda))**2) - bz0
+        u(7,:,:) = hlfw/lambda*(COS(x/lambda)*(COSH(y/lambda)+
+     $             hlfw*COS(x/lambda)) + hlfw*SIN(x/lambda)**2)*
+     $             (COSH(y/lambda)+hlfw*COS(x/lambda))**(-2) +
+     $             (-COSH(y/lambda)*(COSH(y/lambda)+hlfw*COS(x/lambda))+
+     $             SINH(y/lambda)**2)/lambda*
+     $             (COSH(y/lambda)+hlfw*COS(x/lambda))**(-2)
+c        u(8,:,:) = 0.25_r8*beta0
+c        u(9,:,:) = u(8,:,:)      
       CASE("Chen-Shibata","Chen-Shibata-hlf")
         r=SQRT(x**2+(y-h_psi)**2)/rad0
         xt = zero
@@ -327,7 +340,7 @@ c-----------------------------------------------------------------------
      $     eta_chrsp,eta_vbl,j_c,etavac,mu,mu_vbl,mu_min,kappa_case,
      $     kappa_prp,kappa_min,kappa_max,ieheat,n0,b0,beta0,lx,ly,
      $     x_curve,y_curve,rad0,x0,c_psi,y0_eta,y_eta,c_psi_e,h_psi,t_e,
-     $     hyper_eta,bz0,p0,R0,epsilon, ddiff, c_rho
+     $     hyper_eta,bz0,p0,R0,epsilon, ddiff, c_rho, hlfw, lambda
 c Elena: source? cylinder?(geometry?) eta? - resistivity
 c Elena: mu - viscosity? mu_vbl? kappa? 
 c Elena: n0,b0,beta0 - normalizations?
@@ -454,6 +467,8 @@ c-----------------------------------------------------------------------
       CALL MPI_Bcast(epsilon,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
       CALL MPI_Bcast(ddiff,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
       CALL MPI_Bcast(c_rho,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
+      CALL MPI_Bcast(hlfw,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
+      CALL MPI_Bcast(lambda,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
 c-----------------------------------------------------------------------
 c     set PDE flags
 c-----------------------------------------------------------------------
@@ -500,6 +515,8 @@ c-----------------------------------------------------------------------
         T0 = b0*b0/(n0*mu0*k_B)
         Tph = 5000/T0  ! Photospheric temp (K)
         Tco = 1.e6/T0  ! Coronal temperature (K)
+      CASE("TwoFR")
+        lambda = lambda/2./pi
       END SELECT
 c-----------------------------------------------------------------------
 c     terminate.
@@ -532,6 +549,9 @@ c-----------------------------------------------------------------------
       CASE("CurrentSheet")
          u(2,:,:) = u(2,:,:) + c_psi*EXP(-x**2/(half*h_psi)**2)
      $        *EXP(-(y-3.*htr)**2/(two*h_psi)**2)
+      CASE("TwoFR")
+         u(2,:,:) = u(2,:,:)
+     $             + epsilon*SIN(x/lx/lambda)*COS(y*pi/ly/2.)
       END SELECT
       RETURN
       END SUBROUTINE physics_init
@@ -580,7 +600,28 @@ c Elena: 1 - left, 4 - bottom, 2 - top, 3 - right
          
          right%static(3:7)=.TRUE.
          right%bc_type(1)="natural"
-         
+
+      CASE("TwoFR")
+         top%static(3:7)=.TRUE.
+         top%bc_type(1)="natural"
+
+         left%bc_type(1:3)="zeroflux"
+         left%bc_type(5)="zeroflux"
+         left%bc_type(7)="zeroflux"
+         left%static(4)=.TRUE.
+         left%static(6)=.TRUE.
+
+         right%bc_type(1:3)="zeroflux"
+         right%bc_type(5)="zeroflux"
+         right%bc_type(7)="zeroflux"
+         right%static(4)=.TRUE.
+         right%static(6)=.TRUE.
+
+         bottom%bc_type(1:4)="zeroflux"
+         bottom%bc_type(7)="zeroflux"
+         bottom%static(5)=.TRUE.
+         bottom%static(6)=.TRUE.
+   
       CASE("Chen-Shibata") !boundary condition type
          top%static(1)=.TRUE.
          right%static(1)=.TRUE.
@@ -705,7 +746,22 @@ c Elena begin
      $         +nhat(2,:,:)*(uy(i,:,:)-u(i,:,:)*uy(1,:,:))              
             ENDDO      
          END SELECT     
-c Elena end             
+c Elena end        
+         CASE("TwoFR")
+         SELECT CASE(lrtb)
+         CASE("left", "right")
+            c(4,:,:)=u(4,:,:)    !0=n*vx
+            c(6,:,:)=u(6,:,:)    !0=n*vz
+         CASE("top")
+            c(3,:,:)=nhat(1,:,:)*ux(3,:,:)+nhat(2,:,:)*uy(3,:,:) !0=grad_n(bz)
+            c(4,:,:)=u(4,:,:)
+            c(5,:,:)=u(5,:,:)
+            c(6,:,:)=u(6,:,:)
+            c(7,:,:)=u(7,:,:)
+         CASE("bottom")
+            c(5,:,:)=u(5,:,:)    !0=n*vy
+            c(6,:,:)=u(6,:,:)    !0=n*vz               
+      END SELECT     
       CASE("Chen-Shibata") !BC equations for rhs
          SELECT CASE(lrtb)
          CASE("left","right","top")
@@ -919,7 +975,23 @@ c Elena begin
             c_ux(6,1,:,:)=-nhat(1,:,:)*u(6,:,:)
             c_uy(6,1,:,:)=-nhat(2,:,:)*u(6,:,:)
          END SELECT     
-c Elena end         
+c Elena end
+         CASE("TwoFR")
+         SELECT CASE(lrtb)
+         CASE("left","right")
+            c_u(4,4,:,:)=one
+            c_u(6,6,:,:)=one
+         CASE("top")
+            c_ux(3,3,:,:)=nhat(1,:,:)
+            c_uy(3,3,:,:)=nhat(2,:,:)
+            c_u(4,4,:,:)=one
+            c_u(5,5,:,:)=one
+            c_u(6,6,:,:)=one
+            c_u(7,7,:,:)=one
+         CASE("bottom")
+            c_u(5,5,:,:)=one
+            c_u(6,6,:,:)=one
+         END SELECT         
       CASE("Chen-Shibata") !derivatives of BC equations
          SELECT CASE(lrtb)
          CASE("left","right","top")
@@ -1111,7 +1183,12 @@ c Elena begin
          CASE("right")
             mass(2,2,:,:)=one
          END SELECT
-c Elena end      
+c Elena end 
+      CASE("TwoFR")
+         SELECT CASE(lrtb)
+         CASE("top")
+            mass(2,2,:,:)=one
+         END SELECT     
       CASE("Chen-Shibata") !lhs
          SELECT CASE(lrtb)
          CASE("bottom")
@@ -1825,6 +1902,9 @@ c-----------------------------------------------------------------------
       REAL(r8), DIMENSION(0:,0:), INTENT(OUT) :: x,y
 c-----------------------------------------------------------------------
       SELECT CASE(init_type)
+      CASE("TwoFR")
+        x=lx*(x_curve*ksi**3 + ksi)/(x_curve + one)
+        y=ly*(y_curve*phi**2 + phi)/(y_curve + one)
       CASE("Chen-Shibata")
         x=lx*0.5*(x_curve*(ksi-0.5)**3 + (ksi-0.5))
      $        /(.125*x_curve + .5)
