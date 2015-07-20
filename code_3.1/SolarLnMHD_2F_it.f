@@ -486,7 +486,7 @@ c     etas_norm absorbs the constants in front of Spitzer resistivity.
 c-----------------------------------------------------------------------
       tnorm=R0*SQRT(mu0*n0*mp*Zeff)/b0
       SELECT CASE(init_type)
-      CASE("Chen-Shibata","Chen-Shibata-hlf","CurrentSheet-hlf")
+      CASE("Chen-Shibata","Chen-Shibata-hlf","CurrentSheet-hlf","TwoFR")
          gravity=0.
       CASE DEFAULT
          gravity=g0*tnorm**2/R0     
