@@ -1,7 +1,7 @@
 &post_input
 
-	indir="/scratch/scratchdirs/eprovorn/fadeev_isothermal"
-	postout="/scratch/scratchdirs/eprovorn/fadeev_isothermal/data"
+	indir="/scratch/scratchdirs/eprovorn/mast_cart"
+	postout="/scratch/scratchdirs/eprovorn/mast_cart/data"
 	out_type="hdf5"
 
 	job_type="."
@@ -12,8 +12,8 @@
 	drawgrid=f
 	polar_crd=f
 
-	mfile=3000
-	stride=30
+	mfile=2000
+	stride=1
 
 	contour=t
 	min_value=1.e-16

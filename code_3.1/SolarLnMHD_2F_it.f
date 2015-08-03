@@ -63,7 +63,7 @@ c-----------------------------------------------------------------------
      $     ieheat=3._r8,n0=1.e15,b0=1.e-3,bz0=0.,beta0=1.,lx=0.,
      $     ly=0.,x_curve=1.,y_curve=1.,rad0=1.,x0=0.,c_psi=0.,
      $     c_psi_e=0.,h_psi=0.,t_e=0.,ke_norm=1.,ki_norm=1.,xe_norm=1.,
-     $     xi_norm=1.,gamma_fac=1.,gravity=1.,v_chod_norm=1.,
+     $     xi_norm=1.,gamma_fac=1.,gravity=0.,v_chod_norm=1.,
      $     etac_norm=1.,etas_norm=1.,hyper_eta=0.,htr=1.,wtr=1.,
      $     Tph=1.,Tco=1.,p0=1.,y_eta=1.,y0_eta=0.,mu_min=0.,epsilon=0.,
      $     ddiff = 0., c_rho = 0., hlfw = 0., lambda = 0.
@@ -177,22 +177,22 @@ c        u(3,:,:)= SQRT(bz0**2 + one - (TANH(x/h_psi))**2
 c     $            +beta0*(one - (EXP(u(1,:,:)))**(gamma)))-bz0
 c uniform electron and ion pressure u(8) u(9)
         u(7,:,:)=1._r8/h_psi/COSH(x/h_psi)/COSH(x/h_psi)      
-c        u(8,:,:)=0.25_r8*beta0
-c        u(9,:,:)=0.25_r8*beta0        
 c Elena end  
       CASE("TwoFR")
         u(1,:,:) = LOG(one)
+c        u(1,:,:) = LOG(one + 1./beta0*(1. - hlfw**2)/
+c     $             (COSH(y/lambda) + hlfw*COS(x/lambda))**2)
         u(2,:,:) = - lambda*LOG(COSH(y/lambda)+hlfw*COS(x/lambda))
-        u(3,:,:) = SQRT(bz0*bz0 + (1. - hlfw**2)/
+c        u(3,:,:) = 0.
+        u(3,:,:) = SQRT((1. - hlfw**2)/
      $             (COSH(y/lambda) + hlfw*COS(x/lambda))**2) - bz0
+c     $             SQRT((1. - hlfw)/(1. + hlfw))
         u(7,:,:) = hlfw/lambda*(COS(x/lambda)*(COSH(y/lambda)+
      $             hlfw*COS(x/lambda)) + hlfw*SIN(x/lambda)**2)*
      $             (COSH(y/lambda)+hlfw*COS(x/lambda))**(-2) +
      $             (-COSH(y/lambda)*(COSH(y/lambda)+hlfw*COS(x/lambda))+
      $             SINH(y/lambda)**2)/lambda*
      $             (COSH(y/lambda)+hlfw*COS(x/lambda))**(-2)
-c        u(8,:,:) = 0.25_r8*beta0
-c        u(9,:,:) = u(8,:,:)      
       CASE("Chen-Shibata","Chen-Shibata-hlf")
         r=SQRT(x**2+(y-h_psi)**2)/rad0
         xt = zero
@@ -212,8 +212,6 @@ c        u(9,:,:) = u(8,:,:)
         WHERE(r.LE.one)
            u(7,:,:)=u(7,:,:)-4.*(1-r**2)/rad0
         END WHERE
-c        u(8,:,:)=0.25_r8*beta0*EXP(u(1,:,:))
-c        u(9,:,:)=0.25_r8*beta0*EXP(u(1,:,:))
 
       CASE("CS-stratified")
         r=SQRT(x**2+(y-h_psi)**2)/rad0
@@ -602,8 +600,10 @@ c Elena: 1 - left, 4 - bottom, 2 - top, 3 - right
          right%bc_type(1)="natural"
 
       CASE("TwoFR")
+         edge_order=(/2,4,1,3/)
          top%static(3:7)=.TRUE.
-         top%bc_type(1)="natural"
+c         top%bc_type(1)="natural"
+         top%bc_type(1)="zeroflux" 
 
          left%bc_type(1:3)="zeroflux"
          left%bc_type(5)="zeroflux"

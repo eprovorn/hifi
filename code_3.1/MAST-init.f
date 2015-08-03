@@ -69,7 +69,7 @@ c-----------------------------------------------------------------------
       SELECT CASE(init_type)
 c      CASE("cartFF")
       CASE("cylFF", "cartFF")
-         u(1,:,:)=one
+         u(1,:,:)=LOG(one)
          u(2,:,:)=0.0_r8
 
          rminor = SQRT((x-Zcen)**2 + (y-Rcen)**2)
@@ -319,8 +319,8 @@ c-----------------------------------------------------------------------
       SELECT CASE(init_type)
       CASE("cartFF","cylFF")
          top%static(2)=.TRUE.
-         bottom%static(2)=.TRUE.
-         left%static(2)=.TRUE.
+         bottom%bc_type(2)="zeroflux"
+         left%bc_type(2)="zeroflux"
          right%static(2)=.TRUE.
       END SELECT
 c-----------------------------------------------------------------------
@@ -358,12 +358,12 @@ c-----------------------------------------------------------------------
       SELECT CASE(init_type)
       CASE("cartFF","cylFF")
          SELECT CASE(lrtb)
-         CASE("top","bottom")
+         CASE("top","right")
 c            c(2,:,:)=u(2,:,:)-0.5_r8*Bv*y
              c(2,:,:)=u(2,:,:)
-         CASE("left","right")
+c         CASE("left","bottom")
 c            c(2,:,:)=u(2,:,:)-0.5_r8*Bv*y
-             c(2,:,:)=u(2,:,:)
+c             c(2,:,:)=u(2,:,:)
          END SELECT
       END SELECT
 c-----------------------------------------------------------------------
@@ -405,10 +405,10 @@ c-----------------------------------------------------------------------
       SELECT CASE(init_type)
       CASE("cartFF","cylFF")
          SELECT CASE(lrtb)
-         CASE("top","bottom")
+         CASE("top","right")
             c_u(2,2,:,:)=one
-         CASE("left","right")
-            c_u(2,2,:,:)=one
+c         CASE("left","right")
+c            c_u(2,2,:,:)=one
          END SELECT
       END SELECT
 c-----------------------------------------------------------------------
@@ -651,10 +651,10 @@ c-----------------------------------------------------------------------
       SELECT CASE(init_type)
       CASE("cartFF")
          rcurve=0.25_r8
-          ksi = lx*(x-half)
+          ksi = lx*x/two
 c         ksi=SIGN(half*lx*((two*x - one)**2 + rcurve*ABS(two*x - one))
 c     $        /(one + rcurve),two*x - one) + rpost
-          phi = ly*(y-half)
+          phi = ly*y/two
 c         phi=SIGN(half*ly*((two*y - one)**2 + gr_curve*ABS(two*y - one))
 c     $        /(one + gr_curve),two*y - one) 
       CASE("cylFF")
