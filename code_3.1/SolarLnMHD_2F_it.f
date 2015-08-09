@@ -484,7 +484,8 @@ c     etas_norm absorbs the constants in front of Spitzer resistivity.
 c-----------------------------------------------------------------------
       tnorm=R0*SQRT(mu0*n0*mp*Zeff)/b0
       SELECT CASE(init_type)
-      CASE("Chen-Shibata","Chen-Shibata-hlf","CurrentSheet-hlf","TwoFR")
+      CASE("Chen-Shibata","Chen-Shibata-hlf","CurrentSheet-hlf","TwoFR",
+     $     "MAST")
          gravity=0.
       CASE DEFAULT
          gravity=g0*tnorm**2/R0     
@@ -621,7 +622,27 @@ c         top%bc_type(1)="natural"
          bottom%bc_type(7)="zeroflux"
          bottom%static(5)=.TRUE.
          bottom%static(6)=.TRUE.
-   
+     
+      CASE("MAST")
+         edge_order=(/2,4,1,3/)
+
+         top%bc_type(1)="natural"
+         top%static(3:7)=.TRUE.
+
+         left%bc_type(1:3)="zeroflux"
+         left%bc_type(5)="zeroflux"
+         left%bc_type(7)="zeroflux"
+         left%static(4)=.TRUE.
+         left%static(6)=.TRUE.
+         
+         right%bc_type(1)="natural"
+         right%static(3:7)=.TRUE.
+
+         bottom%bc_type(1:4)="zeroflux"
+         bottom%bc_type(7)="zeroflux"
+         bottom%static(5)=.TRUE.
+         bottom%static(6)=.TRUE.
+      
       CASE("Chen-Shibata") !boundary condition type
          top%static(1)=.TRUE.
          right%static(1)=.TRUE.
@@ -761,7 +782,30 @@ c Elena end
          CASE("bottom")
             c(5,:,:)=u(5,:,:)    !0=n*vy
             c(6,:,:)=u(6,:,:)    !0=n*vz               
-      END SELECT     
+      END SELECT
+     
+         CASE("MAST")
+         SELECT CASE(lrtb)
+         CASE("top")
+            c(3,:,:)=nhat(1,:,:)*ux(3,:,:)+nhat(2,:,:)*uy(3,:,:) !0=grad_n(bz)
+            c(4,:,:)=uy(4,:,:)-u(4,:,:)*uy(1,:,:)     !d(vx)/dy=0 
+            c(5,:,:)=u(5,:,:)                         !vy*u1=0
+            c(6,:,:)=uy(6,:,:)-u(6,:,:)*uy(1,:,:)     ! d(vz)/dy=0
+            c(7,:,:)=u(7,:,:) !0=jz
+         CASE("left")
+            c(4,:,:)=u(4,:,:)    !0=n*vx
+            c(6,:,:)=u(6,:,:)    !0=n*vz
+         CASE("right")
+            c(3,:,:)=nhat(1,:,:)*ux(3,:,:)+nhat(2,:,:)*uy(3,:,:)    !grad_n(bz)=0
+            c(4,:,:)=u(4,:,:)  !u1*vx=0
+            c(5,:,:)=ux(5,:,:)-u(5,:,:)*ux(1,:,:) !0=d/dx(vy)
+            c(6,:,:)=ux(6,:,:)-u(6,:,:)*ux(1,:,:) !0=d/dx(vz)
+            c(7,:,:)=u(7,:,:)    !jz=0
+         CASE("bottom")
+            c(5,:,:)=u(5,:,:)    !0=n*vy
+            c(6,:,:)=u(6,:,:)    !0=n*vz               
+      END SELECT
+
       CASE("Chen-Shibata") !BC equations for rhs
          SELECT CASE(lrtb)
          CASE("left","right","top")
@@ -992,6 +1036,39 @@ c Elena end
             c_u(5,5,:,:)=one
             c_u(6,6,:,:)=one
          END SELECT         
+
+         CASE("MAST")
+         SELECT CASE(lrtb)
+         CASE("left")
+            c_u(4,4,:,:)=one
+            c_u(6,6,:,:)=one
+         CASE("right")
+            c_ux(3,3,:,:)=nhat(1,:,:)
+            c_uy(3,3,:,:)=nhat(2,:,:)
+            c_u(4,4,:,:)=one
+            c_u(5,5,:,:)=-ux(1,:,:)
+            c_ux(5,1,:,:)=-u(5,:,:)
+            c_ux(5,5,:,:)=one
+            c_u(6,6,:,:)=-ux(1,:,:)
+            c_ux(6,1,:,:)=-u(6,:,:)
+            c_ux(6,6,:,:)=one
+            c_u(7,7,:,:)=one
+         CASE("top")
+            c_ux(3,3,:,:)=nhat(1,:,:)
+            c_uy(3,3,:,:)=nhat(2,:,:)
+            c_u(4,4,:,:)=-uy(1,:,:)
+            c_uy(4,1,:,:)=-u(4,:,:)
+            c_uy(4,4,:,:)=one
+            c_u(5,5,:,:)=one
+            c_u(6,6,:,:)=-uy(1,:,:)
+            c_uy(6,1,:,:)=-u(6,:,:)
+            c_uy(6,6,:,:)=one
+            c_u(7,7,:,:)=one
+         CASE("bottom")
+            c_u(5,5,:,:)=one
+            c_u(6,6,:,:)=one
+         END SELECT
+
       CASE("Chen-Shibata") !derivatives of BC equations
          SELECT CASE(lrtb)
          CASE("left","right","top")
@@ -1188,6 +1265,12 @@ c Elena end
          SELECT CASE(lrtb)
          CASE("top")
             mass(2,2,:,:)=one
+         END SELECT
+      CASE("MAST")
+         SELECT CASE(lrtb)
+         CASE("top", "right")
+            mass(2,2,:,:)=one      
+            
          END SELECT     
       CASE("Chen-Shibata") !lhs
          SELECT CASE(lrtb)
@@ -1902,7 +1985,7 @@ c-----------------------------------------------------------------------
       REAL(r8), DIMENSION(0:,0:), INTENT(OUT) :: x,y
 c-----------------------------------------------------------------------
       SELECT CASE(init_type)
-      CASE("TwoFR")
+      CASE("TwoFR","MAST")
         x=lx*(x_curve*ksi**3 + ksi)/(x_curve + one)
         y=ly*(y_curve*phi**2 + phi)/(y_curve + one)
       CASE("Chen-Shibata")

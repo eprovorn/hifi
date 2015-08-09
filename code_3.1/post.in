@@ -1,7 +1,7 @@
 &post_input
 
-	indir="/scratch/scratchdirs/eprovorn/mast_cart"
-	postout="/scratch/scratchdirs/eprovorn/mast_cart/data"
+	indir="/scratch/scratchdirs/eprovorn/mast_rst_1"
+	postout="/scratch/scratchdirs/eprovorn/mast_rst_1/data"
 	out_type="hdf5"
 
 	job_type="."
@@ -13,7 +13,7 @@
 	polar_crd=f
 
 	mfile=2000
-	stride=1
+	stride=20
 
 	contour=t
 	min_value=1.e-16

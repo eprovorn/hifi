@@ -82,8 +82,8 @@ c      CASE("cartFF")
       
          u(3,:,:)=-(Bz1i + Bz2i)         
          u(7,:,:)=jz1i+jz2i
-         u(8,:,:)=beta0*u(1,:,:)
-         u(10,:,:)=beta_e*u(1,:,:)
+c         u(8,:,:)=beta0*u(1,:,:)
+c         u(10,:,:)=beta_e*u(1,:,:)
       END SELECT
 c-----------------------------------------------------------------------
 c     terminate.
@@ -134,7 +134,7 @@ c     compute Bz.
 c-----------------------------------------------------------------------
       WHERE(rminor <= w)
          Bz(:,:)=SQRT(Btor(Bguide,rmajor)**2 
-     $        + epsilon**2*(47._r8*w**2/360._r8
+     $        + epsilon**2*ABS(47._r8*w**2/360._r8
      $        - rminor**2/2._r8 + 3._r8*rminor**4/(4._r8*w**2)
      $        - 5._r8*rminor**6/(9._r8*w**4) 
      $        + 5._r8*rminor**8/(24._r8*w**6)
@@ -208,7 +208,7 @@ c-----------------------------------------------------------------------
       IF(myios /= 0)exit_flag=99
       physics_type="MASTinit"
 
-      nqty=10
+      nqty=7
       nqty_schur=0
       nstep=1
 
@@ -449,9 +449,9 @@ c-----------------------------------------------------------------------
             mass(5,5,:,:)=one
             mass(6,6,:,:)=one
             mass(7,7,:,:)=one
-            mass(8,8,:,:)=one
-            mass(9,9,:,:)=one
-            mass(10,10,:,:)=one
+c            mass(8,8,:,:)=one
+c            mass(9,9,:,:)=one
+c            mass(10,10,:,:)=one
          END SELECT
       END SELECT
 c-----------------------------------------------------------------------
@@ -625,9 +625,9 @@ c-----------------------------------------------------------------------
       mass(5,5,:,:)=one
       mass(6,6,:,:)=one
       mass(7,7,:,:)=one
-      mass(8,8,:,:)=one
-      mass(9,9,:,:)=one
-      mass(10,10,:,:)=one
+c      mass(8,8,:,:)=one
+c      mass(9,9,:,:)=one
+c      mass(10,10,:,:)=one
 c-----------------------------------------------------------------------
 c     terminate.
 c-----------------------------------------------------------------------
@@ -651,10 +651,12 @@ c-----------------------------------------------------------------------
       SELECT CASE(init_type)
       CASE("cartFF")
          rcurve=0.25_r8
-          ksi = lx*x/two
+c          ksi = lx*x/two
+          ksi=lx*(10.*x**3 + x)/(10. + one)
 c         ksi=SIGN(half*lx*((two*x - one)**2 + rcurve*ABS(two*x - one))
 c     $        /(one + rcurve),two*x - one) + rpost
-          phi = ly*y/two
+c          phi = ly*y/two
+          phi = ly*(y**2 + y)/(one + one)
 c         phi=SIGN(half*ly*((two*y - one)**2 + gr_curve*ABS(two*y - one))
 c     $        /(one + gr_curve),two*y - one) 
       CASE("cylFF")
