@@ -6,14 +6,14 @@
 #PBS -S	/bin/bash
 #PBS -m	n
 #PBS -q	debug
-#PBS -l walltime=00:05:00
-#PBS -l mppwidth=1
-#PBS -l mppnppn=1
+#PBS -l walltime=00:30:00
+#PBS -l mppwidth=720
+#PBS -l mppnppn=24
 
 cd $PBS_O_WORKDIR
 export CRAY_ROOTFS=DSL
 
-aprun -n 1 ./sel \
+aprun -n 720 -N 24 -S 6 ./sel \
 -ksp_type fgmres \
 -pc_type asm \
 -pc_asm_overlap 1 \

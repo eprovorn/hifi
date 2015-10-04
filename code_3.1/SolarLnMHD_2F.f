@@ -92,7 +92,7 @@ c Elena htr,wtr?
 c Elena Tph - photospheric temperature, Tco - coronal temperature     
       p = half*p0*EXP(-half*gravity*wtr/Tco
      $     *(w - half*(Tco-Tph)/Tph*(LOG(EXP(-two*w)+Tco/Tph)-9.352)))
-c Elena where this function come from?    
+c Elena see Lee etal. 2014    
       px = 0
       py = -p*half*gravity/Tco
      $     *(one + (Tco-Tph)*EXP(-two*w)/(Tph*EXP(-two*w)+Tco))
@@ -169,7 +169,7 @@ c-----------------------------------------------------------------------
       u = 1.e-20*u
 
       SELECT CASE(init_type)
-c Elena begin. h_psi - width of the current sheet            
+c Elena begin: h_psi - width of the current sheet            
       CASE("CurrentSheet-hlf")
         u(1,:,:)=LOG(one + c_rho*(one - (TANH(x/h_psi))**2))       
         u(2,:,:)= h_psi*LOG(COSH(x/h_psi))
@@ -408,7 +408,7 @@ c-----------------------------------------------------------------------
       physics_type="SolarLnMHD"
 
       nqty=9
-c Elena: what does this variable mean?      
+c Elena: nqty - number of variables      
       nqty_schur=0
 c-----------------------------------------------------------------------
 c     terminate.
@@ -497,7 +497,7 @@ c     etas_norm absorbs the constants in front of Spitzer resistivity.
 c-----------------------------------------------------------------------
       tnorm=R0*SQRT(mu0*n0*mp*Zeff)/b0
       SELECT CASE(init_type)
-      CASE("Chen-Shibata","Chen-Shibata-hlf","CurrentSheet-hlf")
+      CASE("Chen-Shibata","Chen-Shibata-hlf","CurrentSheet-hlf","MAST")
          gravity=0.
       CASE DEFAULT
          gravity=g0*tnorm**2/R0     
@@ -517,11 +517,9 @@ c-----------------------------------------------------------------------
       gamma_fac=gamma/(gamma-one)
       rad_fac = n0*n0*R0/(b0*b0/mu0)/(b0/SQRT(mu0*mp*n0)) 
 c      jc_norm = 2.14*iqe*R0*SQRT(mu0*n0/mp)
+c Elena: reducing critical value of current
       jc_norm = 0.0011*2.14*qe*R0*SQRT(mu0*n0/mp)
       eta_anm_norm = 1.4e-3*(3.e8)*mp/(42.85*qe*b0*R0)
-
-c      WRITE(26,*) etas_norm,jc_norm, eta_anm_norm
-c      STOP
 
       SELECT CASE(init_type)
       CASE("Chen-Shibata","Chen-Shibata-hlf","CurrentSheet-hlf")
@@ -577,7 +575,6 @@ c-----------------------------------------------------------------------
       CASE("TwoFR")
          u(2,:,:) = u(2,:,:) 
      $             + epsilon*SIN(x/lx/lambda)*COS(y*pi/ly/2.)
-c   cos(y/ly*pi/2.)
       END SELECT
       RETURN
       END SUBROUTINE physics_init
@@ -646,8 +643,28 @@ c Elena: 1 - left, 4 - bottom, 2 - top, 3 - right
          bottom%bc_type(1:4)="zeroflux"
          bottom%bc_type(7:9)="zeroflux"
          bottom%static(5)=.TRUE.
-         bottom%static(6)=.TRUE.              
-   
+         bottom%static(6)=.TRUE.
+              
+      CASE("MAST")
+         edge_order=(/2,4,1,3/)
+
+         top%bc_type(1)="natural"
+         top%static(3:9)=.TRUE.
+
+         left%bc_type(1:3)="zeroflux"
+         left%bc_type(5)="zeroflux"
+         left%bc_type(7:9)="zeroflux"
+         left%static(4)=.TRUE.
+         left%static(6)=.TRUE.
+
+         right%bc_type(1)="natural"
+         right%static(3:9)=.TRUE.
+
+         bottom%bc_type(1:4)="zeroflux"
+         bottom%bc_type(7:9)="zeroflux"
+         bottom%static(5)=.TRUE.
+         bottom%static(6)=.TRUE. 
+
       CASE("Chen-Shibata") !boundary condition type
          top%static(1)=.TRUE.
          right%static(1)=.TRUE.
@@ -799,6 +816,39 @@ c thermal isolator gradT_e = 0. gradT_i =0.
             c(5,:,:)=u(5,:,:)    !0=n*vy
             c(6,:,:)=u(6,:,:)    !0=n*vz               
       END SELECT
+
+        CASE("MAST")
+         SELECT CASE(lrtb)
+         CASE("top")
+            c(3,:,:)=nhat(1,:,:)*ux(3,:,:)+nhat(2,:,:)*uy(3,:,:) !0=grad_n(bz)
+            c(4,:,:)=uy(4,:,:)-u(4,:,:)*uy(1,:,:)     !d(vx)/dy=0 
+            c(5,:,:)=u(5,:,:)                         !vy*u1=0
+            c(6,:,:)=uy(6,:,:)-u(6,:,:)*uy(1,:,:)     ! d(vz)/dy=0
+            c(7,:,:)=u(7,:,:) !0=jz
+c thermal isolator gradT_e = 0. gradT_i =0.           
+            DO i=8,9
+               c(i,:,:)=nhat(1,:,:)*(ux(i,:,:)-u(i,:,:)*ux(1,:,:))
+     $         +nhat(2,:,:)*(uy(i,:,:)-u(i,:,:)*uy(1,:,:))
+            ENDDO
+         CASE("left")
+            c(4,:,:)=u(4,:,:)    !0=n*vx
+            c(6,:,:)=u(6,:,:)    !0=n*vz
+         CASE("right")
+            c(3,:,:)=nhat(1,:,:)*ux(3,:,:)+nhat(2,:,:)*uy(3,:,:)    !grad_n(bz)=0
+            c(4,:,:)=u(4,:,:)  !u1*vx=0
+            c(5,:,:)=ux(5,:,:)-u(5,:,:)*ux(1,:,:) !0=d/dx(vy)
+            c(6,:,:)=ux(6,:,:)-u(6,:,:)*ux(1,:,:) !0=d/dx(vz)
+            c(7,:,:)=u(7,:,:)    !jz=0
+c thermal isolator gradT_e = 0. gradT_i =0.            
+            DO i=8,9
+               c(i,:,:)=nhat(1,:,:)*(ux(i,:,:)-u(i,:,:)*ux(1,:,:))
+     $         +nhat(2,:,:)*(uy(i,:,:)-u(i,:,:)*uy(1,:,:))
+            ENDDO
+         CASE("bottom")
+            c(5,:,:)=u(5,:,:)    !0=n*vy
+            c(6,:,:)=u(6,:,:)    !0=n*vz               
+      END SELECT
+
       CASE("Chen-Shibata") !BC equations for rhs
          SELECT CASE(lrtb)
          CASE("left","right","top")
@@ -889,7 +939,7 @@ c thermal isolator gradT_e = 0. gradT_i =0.
             END WHERE
             c(2,:,:)=u(2,:,:)-psi_bc        !0=Psi-(Psi_0-Psi_e*t/t_e)
             c(3,:,:)=uy(3,:,:)              !0=dy(B_z)
-            c(4,:,:)=uy(4,:,:)-u(4,:,:)*uy(1,:,:) !0=dy(v_x)   Elena???
+            c(4,:,:)=uy(4,:,:)-u(4,:,:)*uy(1,:,:) !0=dy(v_x)   
             c(5,:,:)=u(5,:,:)              !0=n*v_y
             c(6,:,:)=uy(6,:,:)-u(6,:,:)*uy(1,:,:) !0=dy(v_z)
             c(7,:,:)=uy(7,:,:)              !0=dy(j_z)
@@ -1057,6 +1107,59 @@ c            c_uy(6,6,:,:)=-nhat(2,:,:)*u(6,:,:)
             c_u(5,5,:,:)=one
             c_u(6,6,:,:)=one
          END SELECT
+
+        CASE("MAST")
+         SELECT CASE(lrtb)
+         CASE("left")
+            c_u(4,4,:,:)=one
+            c_u(6,6,:,:)=one
+         CASE("right")
+            c_ux(3,3,:,:)=nhat(1,:,:)
+            c_uy(3,3,:,:)=nhat(2,:,:)
+            c_u(4,4,:,:)=one
+            c_u(5,5,:,:)=-ux(1,:,:)
+            c_ux(5,1,:,:)=-u(5,:,:)
+            c_ux(5,5,:,:)=one
+            c_u(6,6,:,:)=-ux(1,:,:)
+            c_ux(6,1,:,:)=-u(6,:,:)
+            c_ux(6,6,:,:)=one
+            c_u(7,7,:,:)=one
+            c_u(8,8,:,:)=-nhat(1,:,:)*ux(1,:,:) - nhat(2,:,:)*uy(1,:,:)
+            c_ux(8,8,:,:)=nhat(1,:,:)
+            c_uy(8,8,:,:)=nhat(2,:,:)
+            c_ux(8,1,:,:)=-nhat(1,:,:)*u(8,:,:)
+            c_uy(8,1,:,:)=-nhat(2,:,:)*u(8,:,:)
+            c_u(9,9,:,:)=-nhat(1,:,:)*ux(1,:,:) - nhat(2,:,:)*uy(1,:,:)
+            c_ux(9,9,:,:)=nhat(1,:,:)
+            c_uy(9,9,:,:)=nhat(2,:,:)
+            c_ux(9,1,:,:)=-nhat(1,:,:)*u(9,:,:)
+            c_uy(9,1,:,:)=-nhat(2,:,:)*u(9,:,:)
+         CASE("top")
+            c_ux(3,3,:,:)=nhat(1,:,:)
+            c_uy(3,3,:,:)=nhat(2,:,:)
+            c_u(4,4,:,:)=-uy(1,:,:)
+            c_uy(4,1,:,:)=-u(4,:,:)
+            c_uy(4,4,:,:)=one
+            c_u(5,5,:,:)=one
+            c_u(6,6,:,:)=-uy(1,:,:)
+            c_uy(6,1,:,:)=-u(6,:,:)
+            c_uy(6,6,:,:)=one
+            c_u(7,7,:,:)=one
+            c_u(8,8,:,:)=-nhat(1,:,:)*ux(1,:,:) - nhat(2,:,:)*uy(1,:,:)
+            c_ux(8,8,:,:)=nhat(1,:,:)
+            c_uy(8,8,:,:)=nhat(2,:,:)
+            c_ux(8,1,:,:)=-nhat(1,:,:)*u(8,:,:)
+            c_uy(8,1,:,:)=-nhat(2,:,:)*u(8,:,:)
+            c_u(9,9,:,:)=-nhat(1,:,:)*ux(1,:,:) - nhat(2,:,:)*uy(1,:,:)
+            c_ux(9,9,:,:)=nhat(1,:,:)
+            c_uy(9,9,:,:)=nhat(2,:,:)
+            c_ux(9,1,:,:)=-nhat(1,:,:)*u(9,:,:)
+            c_uy(9,1,:,:)=-nhat(2,:,:)*u(9,:,:)
+         CASE("bottom")
+            c_u(5,5,:,:)=one
+            c_u(6,6,:,:)=one
+         END SELECT
+
       CASE("Chen-Shibata") !derivatives of BC equations
          SELECT CASE(lrtb)
          CASE("left","right","top")
@@ -1250,6 +1353,11 @@ c Elena end
          CASE("top")
             mass(2,2,:,:)=one
          END SELECT
+      CASE("MAST")
+         SELECT CASE(lrtb)
+         CASE("top", "right")
+            mass(2,2,:,:)=one
+         END SELECT
       CASE("Chen-Shibata") !lhs
          SELECT CASE(lrtb)
          CASE("bottom")
@@ -1400,7 +1508,7 @@ c Components of current j1 = dB_z/dy j2 = - dB_z/dx j3 = u(7)
 c-----------------------------------------------------------------------
 c     resistivity.
 c-----------------------------------------------------------------------
-c Elena default case?
+
       r_sphr=SQRT(x**2 + y**2)-one
       SELECT CASE(eta_case)
       CASE("spitzer")
@@ -1462,7 +1570,6 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c     viscous boundary layer.
 c-----------------------------------------------------------------------
-c Elena: what mu in our case? default
       SELECT CASE(init_type)
       CASE("Chen-Shibata-hlf","CS-stratified","CurrentSheet")
          CALL ChenShibata_mu(x,y,rho,mu_vbl,mu_local)
@@ -2189,7 +2296,7 @@ c-----------------------------------------------------------------------
       REAL(r8), DIMENSION(0:,0:), INTENT(OUT) :: x,y
 c-----------------------------------------------------------------------
       SELECT CASE(init_type)
-      CASE("TwoFR")
+      CASE("TwoFR","MAST")
         x=lx*(x_curve*ksi**3 + ksi)/(x_curve + one)
         y=ly*(y_curve*phi**2 + phi)/(y_curve + one)
       CASE("Chen-Shibata")
