@@ -12,6 +12,7 @@ c     2. SolarLnMHD_psi.
 c     3. SolarLnMHD_equil.
 c     4. ChenShibata_eta.
 c     5. ChenShibata_mu.
+c     6. MAST_eta.
 c-----------------------------------------------------------------------
 c     external subprograms.
 c-----------------------------------------------------------------------
@@ -66,7 +67,7 @@ c-----------------------------------------------------------------------
      $     Tph=1.,Tco=1.,p0=1.,y_eta=1.,y0_eta=0.,mu_min=0.,epsilon=0.,
      $     rad_fac=1.,T0=1.0, c_rho=0., c_T = 0., 
      $     jc_norm = 1., eta_anm_norm = 1.,
-     $     hlfw = 0., lambda = 0.
+     $     hlfw = 0., lambda = 0., ddiff = 0.
       REAL(r8), DIMENSION(1,1) :: heat_blnc_radlos
 
       CONTAINS
@@ -313,14 +314,47 @@ c-----------------------------------------------------------------------
 c     compute viscosity.
 c-----------------------------------------------------------------------
 
-      mu_local = rho*(mu + mu_vbl*EXP(-((x-half*lx)/0.1)**2)
-     $     + mu_vbl*EXP(-((y-ly)/0.4)**2)) + mu_min
+c Elena: original expression
+c      mu_local = rho*(mu + mu_vbl*EXP(-((x-half*lx)/0.1)**2)
+c     $     + mu_vbl*EXP(-((y-ly)/0.4)**2)) + mu_min
+
+c Elena: modified for the case with MAST initial conditions
+      mu_local = rho*(mu + mu_vbl*EXP(-((x-lx)/0.1)**2)
+     $     + mu_vbl*EXP(-((y-ly)/0.1)**2)) + mu_min
+ 
 c-----------------------------------------------------------------------
 c     terminate.
 c-----------------------------------------------------------------------
       RETURN
       END SUBROUTINE ChenShibata_mu
+c-----------------------------------------------------------------------
+c     subprogram 6. MAST_eta.
+c     computes resistive layers
+c-----------------------------------------------------------------------
+c-----------------------------------------------------------------------
+c     declarations.
+c-----------------------------------------------------------------------
+      SUBROUTINE MAST_eta(x,y,eta_vbl,eta_local)
+
+      REAL(r8), DIMENSION(:,:), INTENT(IN) :: x,y
+      REAL(r8), INTENT(IN) :: eta_vbl 
+      REAL(r8), DIMENSION(:,:), INTENT(OUT) :: eta_local
+
+c-----------------------------------------------------------------------
+c     compute resistivity.
+c-----------------------------------------------------------------------
+
+      eta_local = eta  
+     $     + eta_vbl*EXP(-((x-lx)/0.1)**2)
+     $     + eta_vbl*EXP(-((y-ly)/0.1)**2)
+
+c-----------------------------------------------------------------------
+c     terminate.
+c-----------------------------------------------------------------------
+      RETURN
+      END SUBROUTINE MAST_eta
       END MODULE SolarLnMHD_mod
+
 c-----------------------------------------------------------------------
 c     subprogram a. physics_input.
 c     sets up input constants.
@@ -349,7 +383,7 @@ c-----------------------------------------------------------------------
      $     eta_chrsp,eta_vbl,j_c,etavac,mu,mu_vbl,mu_min,kappa_case,
      $     kappa_prp,kappa_min,kappa_max,ieheat,n0,b0,beta0,lx,ly,
      $     x_curve,y_curve,rad0,x0,c_psi,y0_eta,y_eta,c_psi_e,h_psi,t_e,
-     $     hyper_eta,bz0,p0,R0,epsilon, c_rho, c_T, hlfw, lambda
+     $     hyper_eta,bz0,p0,R0,epsilon, c_rho, c_T, hlfw, lambda, ddiff
 c Elena: source? cylinder?(geometry?) eta? - resistivity
 c Elena: mu - viscosity? mu_vbl? kappa? 
 c Elena: n0,b0,beta0 - normalizations?
@@ -480,6 +514,7 @@ c-----------------------------------------------------------------------
       CALL MPI_Bcast(c_T,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
       CALL MPI_Bcast(hlfw,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
       CALL MPI_Bcast(lambda,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
+      CALL MPI_Bcast(ddiff,1,MPI_DOUBLE_PRECISION,0,comm,ierr)
 c-----------------------------------------------------------------------
 c     set PDE flags
 c-----------------------------------------------------------------------
@@ -1528,6 +1563,8 @@ c-----------------------------------------------------------------------
      $        etavac,coeff,eta_local)
       CASE("Chen-Shibata")
          CALL ChenShibata_eta(x,y,jtot,eta_vbl,eta_chrsp,eta_local)
+      CASE("MAST")
+         CALL MAST_eta(x,y,eta_vbl,eta_local)
       CASE DEFAULT
          eta_local=eta
       END SELECT
@@ -1571,7 +1608,7 @@ c-----------------------------------------------------------------------
 c     viscous boundary layer.
 c-----------------------------------------------------------------------
       SELECT CASE(init_type)
-      CASE("Chen-Shibata-hlf","CS-stratified","CurrentSheet")
+      CASE("Chen-Shibata-hlf","CS-stratified","CurrentSheet", "MAST")
          CALL ChenShibata_mu(x,y,rho,mu_vbl,mu_local)
       CASE DEFAULT
          mu_local = mu*rho + mu_min
@@ -1589,9 +1626,10 @@ c-----------------------------------------------------------------------
 c     density equation.
 c-----------------------------------------------------------------------
 c Elena r_fac=1 for Cartesian
-      fx(1,:,:) = r_fac*vi(1,:,:)
-      fy(1,:,:) = r_fac*vi(2,:,:)
-      s(1,:,:) = -r_fac*(vi(1,:,:)*ux(1,:,:) + vi(2,:,:)*uy(1,:,:))
+      fx(1,:,:) = r_fac*(vi(1,:,:) - ddiff*ux(1,:,:))
+      fy(1,:,:) = r_fac*(vi(2,:,:) - ddiff*uy(1,:,:))
+      s(1,:,:) = -r_fac*(vi(1,:,:)*ux(1,:,:) + vi(2,:,:)*uy(1,:,:) - 
+     $           ddiff*ux(1,:,:)*ux(1,:,:) - ddiff*uy(1,:,:)*uy(1,:,:))
 c-----------------------------------------------------------------------
 c     poloidal magnetic flux equation.
 c-----------------------------------------------------------------------
@@ -1656,6 +1694,8 @@ c-----------------------------------------------------------------------
       IF(eta_case == "Chen-Shibata" .AND. (init_type == "CurrentSheet"
      $   .OR. init_type == "Chen-Shibata-hlf"))
      $     CALL ChenShibata_eta(x,y,jtot,zero,eta_chrsp,eta_local)
+  
+      IF(eta_case == "MAST") CALL MAST_eta(x,y,zero,eta_local) 
 
       fx(8,:,:)=r_fac*(gamma_fac*(u(8,:,:)+pt0)*vi(1,:,:)
      $     - kface*BdotTe(1,:,:) - kperpe*Tex)
@@ -1668,7 +1708,8 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c     ion pressure equation.
 c-----------------------------------------------------------------------
-      IF(init_type == "CurrentSheet" .OR. init_type=="Chen-Shibata-hlf")
+      IF(init_type == "CurrentSheet" .OR. init_type=="Chen-Shibata-hlf"
+     $   .OR. init_type == "MAST")
      $     CALL ChenShibata_mu(x,y,rho,zero,mu_local)
 
       fx(9,:,:)=r_fac*(gamma_fac*(u(9,:,:)+pt0)*vi(1,:,:)
@@ -1842,6 +1883,11 @@ c-----------------------------------------------------------------------
          WHERE(jtot.GE.j_c .AND. jtot.LE.(two*j_c))
             eta_j = etavac*half*pi/j_c*SIN(pi*(jtot-j_c)/j_c)
          END WHERE
+      CASE("MAST")
+         CALL MAST_eta(x,y,eta_vbl,eta_local)
+         eta_rho=0.
+         eta_p=0.
+         eta_j=0.
       CASE("IAT-anomalous")
          CALL transport_seteta_u("IAT-anomalous",r_sphr,rho,
      $        u(8,:,:)+pt0,u(9,:,:)+pt0,jtot,jc_norm,eta_anm_norm,
@@ -1924,7 +1970,7 @@ c-----------------------------------------------------------------------
 c     viscous boundary layer.
 c-----------------------------------------------------------------------
       SELECT CASE(init_type)
-      CASE("Chen-Shibata-hlf","CS-stratified","CurrentSheet")
+      CASE("Chen-Shibata-hlf","CS-stratified","CurrentSheet","MAST")
          CALL ChenShibata_mu(x,y,rho,mu_vbl,mu_local)
       CASE DEFAULT
          mu_local = mu*rho + mu_min
@@ -1942,13 +1988,15 @@ c     density equation.
 c-----------------------------------------------------------------------
       fx_u(1,1,:,:) = -r_fac*vi(1,:,:)
       fx_u(1,4,:,:) = r_fac*rho_inv
+      fx_ux(1,1,:,:)= -r_fac*ddiff
       fy_u(1,1,:,:) = -r_fac*vi(2,:,:)
       fy_u(1,5,:,:) = r_fac*rho_inv
+      fy_uy(1,1,:,:)= r_fac*ddiff
       s_u(1,1,:,:) = r_fac*(vi(1,:,:)*ux(1,:,:) + vi(2,:,:)*uy(1,:,:))
       s_u(1,4,:,:) = r_fac*rhox_inv
       s_u(1,5,:,:) = r_fac*rhoy_inv
-      s_ux(1,1,:,:) = -r_fac*vi(1,:,:) 
-      s_uy(1,1,:,:) = -r_fac*vi(2,:,:)
+      s_ux(1,1,:,:) = -r_fac*(vi(1,:,:) - 2.*ddiff) 
+      s_uy(1,1,:,:) = -r_fac*(vi(2,:,:) - 2.*ddiff)
 c-----------------------------------------------------------------------
 c     poloidal magnetic flux equation.
 c-----------------------------------------------------------------------
@@ -2087,6 +2135,8 @@ c-----------------------------------------------------------------------
      $   .OR. init_type == "Chen-Shibata-hlf"))
      $     CALL ChenShibata_eta(x,y,jtot,zero,eta_chrsp,eta_local)
 
+      IF(eta_case == "MAST") CALL MAST_eta(x,y,zero,eta_local) 
+
       fx_u(8,1,:,:)=r_fac*(-gamma_fac*(u(8,:,:)+pt0)*vi(1,:,:)
      $     + (kface*BdotTe_Tx(1,:,:) + kperpe)*(Tex+Tx0)
      $     + kface*BdotTe_Ty(1,:,:)*(Tey+Ty0)
@@ -2155,7 +2205,8 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c     ion pressure equation.
 c-----------------------------------------------------------------------
-      IF(init_type == "CurrentSheet" .OR. init_type=="Chen-Shibata-hlf")
+      IF(init_type == "CurrentSheet" .OR. init_type=="Chen-Shibata-hlf"
+     $   .OR. init_type == "MAST")
      $     CALL ChenShibata_mu(x,y,rho,zero,mu_local)
       
       fx_u(9,1,:,:)=r_fac*(-gamma_fac*(u(9,:,:)+pt0)*vi(1,:,:)

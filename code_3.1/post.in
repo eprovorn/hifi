@@ -13,7 +13,7 @@
 	polar_crd=f
 
 	mfile=2000
-	stride=5
+	stride=10
 
 	contour=t
 	min_value=1.e-16
