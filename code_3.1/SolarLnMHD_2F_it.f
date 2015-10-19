@@ -167,15 +167,12 @@ c-----------------------------------------------------------------------
       SELECT CASE(init_type)
 c Elena begin            
       CASE("CurrentSheet-hlf")
-c uniform density
-        u(1,:,:)=LOG(one + 1./beta0*(one - (TANH(x/h_psi))**2))
-c        u(1,:,:)=LOG(one + c_rho*(one - (TANH(x/h_psi))**2))
-c h_psi - with of current sheet        
+c        u(1,:,:)=LOG(one + 1./beta0*(one - (TANH(x/h_psi))**2))
+        u(1,:,:)=LOG(one + c_rho*(one - (TANH(x/h_psi))**2))
         u(2,:,:)= h_psi*LOG(COSH(x/h_psi))
-        u(3,:,:)=0.
-c        u(3,:,:)= SQRT(bz0**2 + one - (TANH(x/h_psi))**2
-c     $            +beta0*(one - (EXP(u(1,:,:)))**(gamma)))-bz0
-c uniform electron and ion pressure u(8) u(9)
+c        u(3,:,:)=0.
+        u(3,:,:)= SQRT(bz0**2 + one - (TANH(x/h_psi))**2
+     $            +beta0*(one - (EXP(u(1,:,:)))**(gamma)))-bz0
         u(7,:,:)=1._r8/h_psi/COSH(x/h_psi)/COSH(x/h_psi)      
 c Elena end  
       CASE("TwoFR")

@@ -1,10 +1,10 @@
 &post_input
 
-	indir="/scratch/scratchdirs/eprovorn/mast_rst"
-	postout="/scratch/scratchdirs/eprovorn/mast_rst/data"
+	indir="/scratch/scratchdirs/eprovorn/CS_isotherm"
+	postout="/scratch/scratchdirs/eprovorn/CS_isotherm/data"
 	out_type="hdf5"
 
-	job_type="."
+	job_type="CurrentSheet-hlf"
 
 	nxw0=6
 	nyw0=6
@@ -18,7 +18,7 @@
 	contour=t
 	min_value=1.e-16
 
-	flag1d=f
+	flag1d=t
 	flag2d=f
 
 	cray_flag=t
@@ -45,13 +45,13 @@
 &twofluid_input
 
 	x1=0.
-	y1=0.
-	x2=0.
-	y2=0.
-	UxyT_name="."
-	Uprofile_name="."
+	y1=4.5
+	x2=2.
+	y2=4.5
+	UxyT_name="Density"
 	dUdt_name="."
 	VecSqInt_name="."
+        ifascii=f
 /
 
 &fourfield_input
