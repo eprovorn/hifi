@@ -91,7 +91,6 @@ c Elena htr,wtr?
 c Elena Tph - photospheric temperature, Tco - coronal temperature     
       p = half*p0*EXP(-half*gravity*wtr/Tco
      $     *(w - half*(Tco-Tph)/Tph*(LOG(EXP(-two*w)+Tco/Tph)-9.352)))
-c Elena where this function come from?    
       px = 0
       py = -p*half*gravity/Tco
      $     *(one + (Tco-Tph)*EXP(-two*w)/(Tph*EXP(-two*w)+Tco))
