@@ -150,7 +150,6 @@ c-----------------------------------------------------------------------
 c     declarations.
 c-----------------------------------------------------------------------
       SUBROUTINE SolarLnMHD_equil(x,y,u)
-c Elena: Equilibrium initial state      
       REAL(r8), DIMENSION(:,:), INTENT(IN) :: x,y
       REAL(r8), DIMENSION(:,:,:), INTENT(OUT) :: u
 
