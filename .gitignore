@@ -7,6 +7,9 @@ code_3.1/MAST-init
 code_3.1/SolarLnMHD_2F
 code_3.1/SolarLnMHD_2F_it
 code_3.1/cmhd
+code_3.1/post
+code_3.1/*.bin
+post/post
 
 
 # Precompiled Headers
