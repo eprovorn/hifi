@@ -293,17 +293,73 @@ c-----------------------------------------------------------------------
       REAL(r8), DIMENSION(:,:), INTENT(OUT) :: mu_local
 
 c-----------------------------------------------------------------------
-c     compute resistivity.
+c     compute viscosity.
 c-----------------------------------------------------------------------
 
-      mu_local = rho*(mu + mu_vbl*EXP(-((x-half*lx)/0.1)**2)
-     $     + mu_vbl*EXP(-((y-ly)/0.4)**2) 
-     $     + mu_vbl*EXP(-(y/0.4)**2)) + mu_min
+c Elena:original expression
+c      mu_local = rho*(mu + mu_vbl*EXP(-((x-half*lx)/0.1)**2)
+c     $     + mu_vbl*EXP(-((y-ly)/0.4)**2) 
+c     $     + mu_vbl*EXP(-(y/0.4)**2)) + mu_min
+
+c Elena: modified for the case with MAST initial conditions
+      mu_local = rho*(mu + mu_vbl*EXP(-((x-lx)/0.1)**2)
+     $     + mu_vbl*EXP(-((y-ly)/0.1)**2)) + mu_min
 c-----------------------------------------------------------------------
 c     terminate.
 c-----------------------------------------------------------------------
       RETURN
       END SUBROUTINE ChenShibata_mu
+c-----------------------------------------------------------------------
+c     subprogram 6. MAST_eta.
+c     computes resistive layers
+c-----------------------------------------------------------------------
+c-----------------------------------------------------------------------
+c     declarations.
+c-----------------------------------------------------------------------
+      SUBROUTINE MAST_eta(x,y,eta_vbl,eta_local)
+
+      REAL(r8), DIMENSION(:,:), INTENT(IN) :: x,y
+      REAL(r8), INTENT(IN) :: eta_vbl
+      REAL(r8), DIMENSION(:,:), INTENT(OUT) :: eta_local
+
+c-----------------------------------------------------------------------
+c     compute resistivity.
+c-----------------------------------------------------------------------
+
+      eta_local = eta
+     $     + eta_vbl*EXP(-((x-lx)/0.1)**2)
+     $     + eta_vbl*EXP(-((y-ly)/0.1)**2)
+
+c-----------------------------------------------------------------------
+c     terminate.
+c-----------------------------------------------------------------------
+      RETURN
+      END SUBROUTINE MAST_eta
+c-----------------------------------------------------------------------
+c     subprogram 7. MAST_ddiff.
+c     computes diffusive layers
+c-----------------------------------------------------------------------
+c-----------------------------------------------------------------------
+c     declarations.
+c-----------------------------------------------------------------------
+      SUBROUTINE MAST_ddiff(x,y,ddiff,ddiff_local)
+
+      REAL(r8), DIMENSION(:,:), INTENT(IN) :: x,y
+      REAL(r8), INTENT(IN) :: ddiff
+      REAL(r8), DIMENSION(:,:), INTENT(OUT) :: ddiff_local
+
+c-----------------------------------------------------------------------
+c     compute mass diffusion coefficient
+c-----------------------------------------------------------------------
+
+      ddiff_local = ddiff*EXP(-((x-lx)/0.1)**2)
+     $            + ddiff*EXP(-((y-ly)/0.1)**2)
+
+c-----------------------------------------------------------------------
+c     terminate.
+c-----------------------------------------------------------------------
+      RETURN
+      END SUBROUTINE MAST_ddiff
       END MODULE SolarLnMHD_mod
 c-----------------------------------------------------------------------
 c     subprogram a. physics_input.
@@ -620,8 +676,9 @@ c         top%bc_type(1)="natural"
      
       CASE("MAST")
          edge_order=(/2,4,1,3/)
-
-         top%bc_type(1)="natural"
+         
+c         top%bc_type(1)="natural"
+         top%static(1)=.TRUE.
          top%static(3:7)=.TRUE.
 
          left%bc_type(1:3)="zeroflux"
@@ -630,7 +687,8 @@ c         top%bc_type(1)="natural"
          left%static(4)=.TRUE.
          left%static(6)=.TRUE.
          
-         right%bc_type(1)="natural"
+c         right%bc_type(1)="natural"
+         right%static(1)=.TRUE.
          right%static(3:7)=.TRUE.
 
          bottom%bc_type(1:4)="zeroflux"
@@ -782,6 +840,7 @@ c Elena end
          CASE("MAST")
          SELECT CASE(lrtb)
          CASE("top")
+            c(1,:,:)=nhat(1,:,:)*ux(1,:,:)+nhat(2,:,:)*uy(1,:,:) !0=grad_n(u)
             c(3,:,:)=nhat(1,:,:)*ux(3,:,:)+nhat(2,:,:)*uy(3,:,:) !0=grad_n(bz)
             c(4,:,:)=uy(4,:,:)-u(4,:,:)*uy(1,:,:)     !d(vx)/dy=0 
             c(5,:,:)=u(5,:,:)                         !vy*u1=0
@@ -791,6 +850,7 @@ c Elena end
             c(4,:,:)=u(4,:,:)    !0=n*vx
             c(6,:,:)=u(6,:,:)    !0=n*vz
          CASE("right")
+            c(1,:,:)=nhat(1,:,:)*ux(1,:,:)+nhat(2,:,:)*uy(1,:,:) !0=grad_n(u)
             c(3,:,:)=nhat(1,:,:)*ux(3,:,:)+nhat(2,:,:)*uy(3,:,:)    !grad_n(bz)=0
             c(4,:,:)=u(4,:,:)  !u1*vx=0
             c(5,:,:)=ux(5,:,:)-u(5,:,:)*ux(1,:,:) !0=d/dx(vy)
@@ -1038,6 +1098,8 @@ c Elena end
             c_u(4,4,:,:)=one
             c_u(6,6,:,:)=one
          CASE("right")
+            c_ux(1,1,:,:)=nhat(1,:,:)
+            c_uy(1,1,:,:)=nhat(2,:,:)
             c_ux(3,3,:,:)=nhat(1,:,:)
             c_uy(3,3,:,:)=nhat(2,:,:)
             c_u(4,4,:,:)=one
@@ -1049,6 +1111,8 @@ c Elena end
             c_ux(6,6,:,:)=one
             c_u(7,7,:,:)=one
          CASE("top")
+            c_ux(1,1,:,:)=nhat(1,:,:)
+            c_uy(1,1,:,:)=nhat(2,:,:)
             c_ux(3,3,:,:)=nhat(1,:,:)
             c_uy(3,3,:,:)=nhat(2,:,:)
             c_u(4,4,:,:)=-uy(1,:,:)
@@ -1343,7 +1407,7 @@ c-----------------------------------------------------------------------
      $     kperpi,kfaci,kperpe,kface,heat_exch,
      $     r_fac,r_faci,j1,j2,j3,jtot,eta_local,b1,b2,Bsq,rho0,pt0,px0,
      $     py0,Tx0,Ty0,rho,rho_inv,rhox_inv,rhoy_inv,gx_vec,gy_vec,
-     $     r_sphr,mu_local
+     $     r_sphr,mu_local, ddiff_local
       REAL(r8), DIMENSION(3,SIZE(u,2),SIZE(u,3)) :: vi,vix,viy,BdotTi,
      $     BdotTe
 c-----------------------------------------------------------------------
@@ -1431,6 +1495,8 @@ c Elena default case?
      $        eta,etavac,eta_local)
       CASE("Chen-Shibata")
          CALL ChenShibata_eta(x,y,jtot,eta_vbl,eta_chrsp,eta_local)
+      CASE("MAST")
+         CALL MAST_eta(x,y,eta_vbl,eta_local)
       CASE DEFAULT
          eta_local=eta
       END SELECT
@@ -1469,10 +1535,15 @@ c     viscous boundary layer.
 c-----------------------------------------------------------------------
 c Elena: what mu in our case? default
       SELECT CASE(init_type)
-      CASE("Chen-Shibata-hlf","CS-stratified","CurrentSheet")
+      CASE("Chen-Shibata-hlf","CS-stratified","CurrentSheet", "MAST")
          CALL ChenShibata_mu(x,y,rho,mu_vbl,mu_local)
       CASE DEFAULT
          mu_local = mu*rho + mu_min
+      END SELECT
+
+      SELECT CASE(init_type)
+      CASE("MAST")
+         CALL MAST_ddiff(x,y,ddiff,ddiff_local)
       END SELECT
 c-----------------------------------------------------------------------
 c     velocities and their gradients.
@@ -1487,10 +1558,11 @@ c-----------------------------------------------------------------------
 c     density equation.
 c-----------------------------------------------------------------------
 c Elena r_fac=1 for Cartesian
-      fx(1,:,:) = r_fac*(vi(1,:,:) - ddiff*ux(1,:,:))
-      fy(1,:,:) = r_fac*(vi(2,:,:) - ddiff*uy(1,:,:))
+      fx(1,:,:) = r_fac*(vi(1,:,:) - ddiff_local*ux(1,:,:))
+      fy(1,:,:) = r_fac*(vi(2,:,:) - ddiff_local*uy(1,:,:))
       s(1,:,:) = -r_fac*(vi(1,:,:)*ux(1,:,:) + vi(2,:,:)*uy(1,:,:) - 
-     $           ddiff*ux(1,:,:)*ux(1,:,:) - ddiff*uy(1,:,:)*uy(1,:,:))
+     $           ddiff_local*ux(1,:,:)*ux(1,:,:) 
+     $         - ddiff_local*uy(1,:,:)*uy(1,:,:))
 c-----------------------------------------------------------------------
 c     poloidal magnetic flux equation.
 c-----------------------------------------------------------------------
@@ -1578,7 +1650,8 @@ c-----------------------------------------------------------------------
      $     kpare_p,kperpe_un,kperpe_p,kperpe_bsq,heat_exch,hexch_un,
      $     hexch_pi,hexch_pe,j1,j2,j3,jtot,b1,b2,Bsq,rho0,pt0,px0,py0,
      $     Tx0,Ty0,eta_local,eta_rho,eta_p,eta_j,j_u3,j_ux3,j_uy3,j_u7,
-     $     rho,rho_inv,rhox_inv,rhoy_inv,gx_vec,gy_vec,r_sphr,mu_local
+     $     rho,rho_inv,rhox_inv,rhoy_inv,gx_vec,gy_vec,r_sphr,mu_local,
+     $     ddiff_local
       REAL(r8), DIMENSION(3,SIZE(x,1),SIZE(x,2)) :: vi,vix,viy,
      $     BdotTe,BdotTe_b1,BdotTe_b2,BdotTe_b3,BdotTe_Tx,BdotTe_Ty,
      $     BdotTi,BdotTi_b1,BdotTi_b2,BdotTi_b3,BdotTi_Tx,BdotTi_Ty
@@ -1693,6 +1766,11 @@ c-----------------------------------------------------------------------
          WHERE(jtot.GE.j_c .AND. jtot.LE.(two*j_c))
             eta_j = etavac*half*pi/j_c*SIN(pi*(jtot-j_c)/j_c)
          END WHERE
+      CASE("MAST")
+         CALL MAST_eta(x,y,eta_vbl,eta_local)
+         eta_rho=0.
+         eta_p=0.
+         eta_j=0.
       CASE DEFAULT
          eta_local=eta
          eta_rho=0.
@@ -1763,10 +1841,15 @@ c-----------------------------------------------------------------------
 c     viscous boundary layer.
 c-----------------------------------------------------------------------
       SELECT CASE(init_type)
-      CASE("Chen-Shibata-hlf","CS-stratified","CurrentSheet")
+      CASE("Chen-Shibata-hlf","CS-stratified","CurrentSheet", "MAST")
          CALL ChenShibata_mu(x,y,rho,mu_vbl,mu_local)
       CASE DEFAULT
          mu_local = mu*rho + mu_min
+      END SELECT
+
+      SELECT CASE(init_type)
+      CASE("MAST")
+         CALL MAST_ddiff(x,y,ddiff,ddiff_local)
       END SELECT
 c-----------------------------------------------------------------------
 c     velocities and their derivatives.
@@ -1781,15 +1864,15 @@ c     density equation.
 c-----------------------------------------------------------------------
       fx_u(1,1,:,:) = -r_fac*vi(1,:,:)
       fx_u(1,4,:,:) = r_fac*rho_inv
-      fx_ux(1,1,:,:)= -r_fac*ddiff
+      fx_ux(1,1,:,:)= -r_fac*ddiff_local
       fy_u(1,1,:,:) = -r_fac*vi(2,:,:)
       fy_u(1,5,:,:) = r_fac*rho_inv
-      fy_uy(1,1,:,:)= r_fac*ddiff
+      fy_uy(1,1,:,:)= -r_fac*ddiff_local
       s_u(1,1,:,:) = r_fac*(vi(1,:,:)*ux(1,:,:) + vi(2,:,:)*uy(1,:,:))
       s_u(1,4,:,:) = r_fac*rhox_inv
       s_u(1,5,:,:) = r_fac*rhoy_inv
-      s_ux(1,1,:,:) = -r_fac*(vi(1,:,:) - 2.*ddiff) 
-      s_uy(1,1,:,:) = -r_fac*(vi(2,:,:) - 2.*ddiff)
+      s_ux(1,1,:,:) = -r_fac*(vi(1,:,:) - 2.*ddiff_local) 
+      s_uy(1,1,:,:) = -r_fac*(vi(2,:,:) - 2.*ddiff_local)
 c-----------------------------------------------------------------------
 c     poloidal magnetic flux equation.
 c-----------------------------------------------------------------------

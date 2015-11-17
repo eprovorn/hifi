@@ -145,7 +145,8 @@ c-----------------------------------------------------------------------
       CASE("fourfield")
          CALL post4field_read
       CASE("fivefield","fourfieldplus","HallMHDiso","cmhd","HallMHD",
-     $        "HallMHDicold","rmhd","emhd","epmhd","cmhdn")
+     $        "HallMHDicold","rmhd","emhd","epmhd","cmhdn", 
+     $        "CurrentSheet-hlf")
          CALL post2fluid_read(indir)
       CASE("pn_ext")
          CALL postpn_read(indir)
@@ -354,7 +355,8 @@ c-----------------------------------------------------------------------
                CALL post4field_UxyT(t_old,xyw,xyw_kt,uw)
                CALL post4field_VecSqInt(t_old,xyw,jac,uw,uxyw)
             CASE("fivefield","fourfieldplus","HallMHDiso","cmhd","cmhdn"
-     $              ,"HallMHD","HallMHDicold","rmhd","emhd","epmhd")
+     $              ,"HallMHD","HallMHDicold","rmhd","emhd","epmhd",
+     $               "CurrentSheet-hlf")
                CALL post2fluid_main(t_old,jac,xyw,xyw_kt,uw,uxyw,
      $              flag1d,flag2d,first1d,first2d,last2d,nt_next,ifile,
      $              stride,file(ifile),nxs)

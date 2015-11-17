@@ -34,6 +34,7 @@ c-----------------------------------------------------------------------
       INTEGER :: qprof_unit=42
       INTEGER :: swten_unit=43
       INTEGER :: oned_unit=44
+      INTEGER :: Uprofile_unit_asc=45
 
       INTEGER :: file_unit=99
 

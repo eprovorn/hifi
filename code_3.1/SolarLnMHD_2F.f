@@ -68,7 +68,7 @@ c-----------------------------------------------------------------------
      $     rad_fac=1.,T0=1.0, c_rho=0., c_T = 0., 
      $     jc_norm = 1., eta_anm_norm = 1.,
      $     hlfw = 0., lambda = 0., ddiff = 0.
-      REAL(r8), DIMENSION(1,1) :: heat_blnc_radlos
+c      REAL(r8), DIMENSION(SIZE(x,1),SIZE(x,2)) :: heat_blnc_radlos
 
       CONTAINS
 c-----------------------------------------------------------------------
@@ -173,16 +173,24 @@ c-----------------------------------------------------------------------
 c Elena begin: h_psi - width of the current sheet            
       CASE("CurrentSheet-hlf")
         u(1,:,:)=LOG(one + c_rho*(one - (TANH(x/h_psi))**2))       
+c Harris sheet
+c        u(1,:,:)=LOG(one + 1./beta0*(one - (TANH(x/h_psi))**2))
         u(2,:,:)= h_psi*LOG(COSH(x/h_psi))
 c        u(8,:,:)=0.25_r8*beta0*(one + c_T*(one - (TANH(x/h_psi))**2))
 c     $          *EXP(u(1,:,:))
         u(8,:,:)=0.25_r8*beta0*(EXP(u(1,:,:)))**(gamma)
+        
         u(3,:,:)= SQRT(bz0**2 + one - (TANH(x/h_psi))**2
      $    + 4.*0.25_r8*beta0 - 4.*u(8,:,:))-bz0
-
+c        u(3,:,:)=0.
+c        u(3,:,:)= SQRT(bz0**2 + one - (TANH(x/h_psi))**2)-bz0
         u(7,:,:)=1._r8/h_psi/COSH(x/h_psi)/COSH(x/h_psi)
+c        u(8,:,:)=0.25_r8*beta0
+c        u(9,:,:)=0.25_r8*beta0
+c        u(8,:,:)=0.25_r8*beta0*(1.+1./beta0*(one - (TANH(x/h_psi))**2))
+c        u(9,:,:)=0.25_r8*beta0*(1.+1./beta0*(one - (TANH(x/h_psi))**2)) 
 c        u(9,:,:)=0.25_r8*beta0*(one + c_T*(one - (TANH(x/h_psi))**2))
-c     $          *EXP(u(1,:,:))
+c     $          *EXP(u(1,:,:)) 
         u(9,:,:)=0.25_r8*beta0*(EXP(u(1,:,:)))**(gamma)
         IF(.NOT. deriv)RETURN
 c        ux(1,:,:)= -EXP(-(x/h_psi)**2)*2.*x/(one 
@@ -487,7 +495,8 @@ c-----------------------------------------------------------------------
       IMPLICIT NONE
 
       LOGICAL, DIMENSION(:), INTENT(INOUT) :: static,ground,adapt_qty
-      REAL(r8), DIMENSION(1,1) :: rho_init, p_init, alpha
+c      REAL(r8), DIMENSION(1,1) :: rho_init, p_init, alpha
+c      REAL(r8), DIMENSION(SIZE(u,2), SIZE(u,3)) :: rho_init,p_init,alpha
 
       REAL(r8) :: tnorm
 c-----------------------------------------------------------------------
@@ -596,10 +605,18 @@ c Elena: reducing critical value of current
         lambda = lambda/2./pi
       END SELECT
 
-      rho_init = one
-      p_init = 0.25*beta0
-      CALL transport_radloss(rad_fac,T0,rho_init,p_init,alpha,
-     $     heat_blnc_radlos)
+c      SELECT CASE(init_type)
+c      CASE("CurrentSheet-hlf")
+c         rho_init = one + c_rho*(one - (TANH(x/h_psi))**2) 
+c         p_init = 0.25*beta0
+c         CALL transport_radloss(rad_fac,T0,rho_init,p_init,alpha,
+c     $     heat_blnc_radlos)
+c      DEFAULT
+c         rho_init = one
+c         p_init = 0.25*beta0
+c      CALL transport_radloss(rad_fac,T0,rho_init,p_init,alpha,
+c     $     heat_blnc_radlos)
+c      END SELECT
 c-----------------------------------------------------------------------
 c     terminate.
 c-----------------------------------------------------------------------
@@ -668,10 +685,10 @@ c robin means a boundary conditions in equation form
       right%bc_type="robin"
       right%static=.FALSE.
 
+c Elena: 1 - left, 4 - bottom, 2 - top, 3 - right
       SELECT CASE(init_type)
       CASE("CurrentSheet-hlf")
          edge_order=(/1,4,2,3/)
-c Elena: 1 - left, 4 - bottom, 2 - top, 3 - right
          top%bc_type="periodic"   
                
          bottom%bc_type="periodic"
@@ -1502,7 +1519,9 @@ c-----------------------------------------------------------------------
      $     kperpi,kfaci,kperpe,kface,heat_exch,
      $     r_fac,r_faci,j1,j2,j3,jtot,eta_local,b1,b2,Bsq,rho0,pt0,px0,
      $     py0,Tx0,Ty0,rho,rho_inv,rhox_inv,rhoy_inv,gx_vec,gy_vec,
-     $     r_sphr,mu_local, rad_loss, alpha, ddiff_local
+     $     r_sphr,mu_local, rad_loss, alpha, ddiff_local, 
+     $     heat_blnc_radlos
+      REAL(r8), DIMENSION(SIZE(u,2), SIZE(u,3)) :: rho_init, p_init
       REAL(r8), DIMENSION(3,SIZE(u,2),SIZE(u,3)) :: vi,vix,viy,BdotTi,
      $     BdotTe
       REAL(r8), DIMENSION(4,SIZE(u,2),SIZE(u,3)) :: coeff
@@ -1638,6 +1657,26 @@ c     radiative losses
 c-----------------------------------------------------------------------
 
       CALL transport_radloss(rad_fac,T0,rho,u(8,:,:)+pt0,alpha,rad_loss)
+
+c-----------------------------------------------------------------------
+c     constant heating function based on electron initial density and 
+c     temperature profiles
+c-----------------------------------------------------------------------
+
+      SELECT CASE(init_type)
+      CASE("CurrentSheet-hlf")
+c        rho_init = one + c_rho*(one - (TANH(x/h_psi))**2) 
+c        p_init = 0.25*beta0*(EXP(u(1,:,:)))**(gamma)
+        rho_init = one
+        p_init = 0.25*beta0
+        CALL transport_radloss(rad_fac,T0,rho_init,p_init,alpha,
+     $     heat_blnc_radlos) 
+      CASE DEFAULT
+        rho_init = one
+        p_init = 0.25*beta0
+        CALL transport_radloss(rad_fac,T0,rho_init,p_init,alpha,
+     $     heat_blnc_radlos)
+      END SELECT
 c-----------------------------------------------------------------------
 c     viscous boundary layer.
 c-----------------------------------------------------------------------
@@ -1651,6 +1690,8 @@ c-----------------------------------------------------------------------
       SELECT CASE(init_type)
       CASE("MAST")
          CALL MAST_ddiff(x,y,ddiff,ddiff_local)
+      CASE DEFAULT
+         ddiff_local=ddiff
       END SELECT
 c-----------------------------------------------------------------------
 c     velocities and their gradients.
@@ -1744,7 +1785,7 @@ c-----------------------------------------------------------------------
       s(8,:,:)=r_fac*(vi(1,:,:)*(ux(8,:,:)+px0) 
      $     + vi(2,:,:)*(uy(8,:,:)+py0) + eta_local*jtot**2 
      $     + hyper_eta*(ux(7,:,:)**2 + uy(7,:,:)**2) - heat_exch
-     $     - rad_loss + heat_blnc_radlos(1,1))
+     $     - rad_loss + heat_blnc_radlos)
 c-----------------------------------------------------------------------
 c     ion pressure equation.
 c-----------------------------------------------------------------------
@@ -2019,6 +2060,8 @@ c-----------------------------------------------------------------------
       SELECT CASE(init_type)
       CASE("MAST")
          CALL MAST_ddiff(x,y,ddiff,ddiff_local)
+      CASE DEFAULT
+         ddiff_local=ddiff
       END SELECT
 c-----------------------------------------------------------------------
 c     velocities and their derivatives.

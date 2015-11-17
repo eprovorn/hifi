@@ -348,6 +348,11 @@ c-----------------------------------------------------------------------
       IF(wflag)OPEN(UNIT=Uprofile_unit,FILE=TRIM(filename)//".bin",
      $     STATUS="UNKNOWN",POSITION="APPEND",FORM="UNFORMATTED")
 c-----------------------------------------------------------------------
+c     open ascii Uprofile.dat file to store data for python.
+c-----------------------------------------------------------------------
+      IF(wflag)OPEN(UNIT=Uprofile_unit_asc,FILE=TRIM(filename)//".dat",
+     $     STATUS="UNKNOWN",POSITION="APPEND",FORM="FORMATTED") 
+c-----------------------------------------------------------------------
 c     prepare for constructing the profile
 c-----------------------------------------------------------------------
       dl=SQRT((x1-x0)**2+(y1-y0)**2)/nxs
@@ -363,9 +368,15 @@ c-----------------------------------------------------------------------
          CALL plotter_UxyT(t,x,y,xyw,xyw_kt,uw,.FALSE.,value,err)
          IF(err)value=value_old
 c-----------------------------------------------------------------------
-c        write to Uprofile.bin
+c        write to Uprofile.bin 
 c-----------------------------------------------------------------------
          IF(wflag)WRITE(Uprofile_unit)REAL(dist,4),REAL(value,4)
+c-----------------------------------------------------------------------
+c        write to Uprofile.dat
+c-----------------------------------------------------------------------
+ 111     FORMAT(9e15.5)
+         IF(wflag)WRITE(Uprofile_unit_asc,111)REAL(dist,4),REAL(value,4)
+
          uprofile(1,ipts)=dist
          uprofile(2:SIZE(value)+1,ipts)=value
 c-----------------------------------------------------------------------
@@ -381,6 +392,7 @@ c-----------------------------------------------------------------------
 c     close Uprofile.bin file.
 c-----------------------------------------------------------------------
       IF(wflag)CLOSE(UNIT=Uprofile_unit)
+      IF(wflag)CLOSE(UNIT=Uprofile_unit_asc)
 c-----------------------------------------------------------------------
 c     terminate.
 c-----------------------------------------------------------------------

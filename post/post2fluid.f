@@ -39,6 +39,12 @@ c-----------------------------------------------------------------------
      $     ion_fac,recomb_fac,mi,ion_efac,recomb_efac,initp,initrho,
      $     initrhon,bx,etavac,zmin,psource,chod_const,rhomax,p0,j_crit,
      $     Te_frac,delx,dely
+      REAL(r8), PRIVATE :: eta_chrsp,eta_vbl,j_c,mu_vbl,mu_min,
+     $     kappa_min,kappa_prp, kappa_max,ieheat,n0,b0,beta0,
+     $     x_curve,y_curve,rad0,x0,c_psi,y0_eta,y_eta,c_psi_e,h_psi,t_e,
+     $     hyper_eta,bz0,p0,R0, c_rho, hlfw
+      LOGICAL :: cylinder=.FALSE.
+ 
 
       INTEGER, PRIVATE :: ncont
       REAL(r8), PRIVATE :: t_old,tc_old,u_old=0.
@@ -97,12 +103,20 @@ c-----------------------------------------------------------------------
       NAMELIST/epmhd_list/nx,ny,np,nq,nbx,xperiodic,yperiodic,dt,dtmax,
      $     tmax,nstep,gr_curve,eta,mu,de_sq,tau,source,lx,ly,
      $     lambda_psi,lambda_phi,epsilon,bound_eps,mach,alfven,init_type
+      NAMELIST/SolarLnMHD_list/nx,ny,np,nq,nbx,xperiodic,yperiodic,dt,
+     $     dtmax,tmax,nstep,init_type,source,cylinder,eta,eta_case,
+     $     eta_chrsp,eta_vbl,j_c,etavac,mu,mu_vbl,mu_min,kappa_case,
+     $     kappa_prp,kappa_min,kappa_max,ieheat,n0,b0,beta0,lx,ly,
+     $     x_curve,y_curve,rad0,x0,c_psi,y0_eta,y_eta,c_psi_e,h_psi,t_e,
+     $     hyper_eta,bz0,p0,R0,epsilon, ddiff, c_rho, hlfw, lambda
+
 c-----------------------------------------------------------------------
 c     read control file.
 c-----------------------------------------------------------------------
       OPEN(UNIT=in_unit,FILE="post.in",STATUS="OLD")
       READ(in_unit,NML=twofluid_input)
       CLOSE(UNIT=in_unit)
+
       infile=TRIM(indir)//"/sel.in"
       SELECT CASE(job_type)
       CASE("fivefield")
@@ -203,6 +217,10 @@ c-----------------------------------------------------------------------
       CASE("epmhd")
          OPEN(UNIT=in_unit,FILE=infile,STATUS="OLD")
          READ(in_unit,NML=epmhd_list)
+         CLOSE(UNIT=in_unit)
+      CASE("CurrentSheet-hlf")
+         OPEN(UNIT=in_unit,FILE=infile,STATUS="OLD")
+         READ(in_unit,NML=SolarLnMHD_list)
          CLOSE(UNIT=in_unit)
       END SELECT
 c-----------------------------------------------------------------------
@@ -319,7 +337,13 @@ c-----------------------------------------------------------------------
             CALL post2fluid_dUdt(t,xyw,xyw_kt,uw,beginner)
             CALL post2fluid_Uprofile(nxs,xyw,xyw_kt,uw,uxyw)
             CALL post2fluid_width(nxs,t,xyw,xyw_kt,uw,uxyw)
-         ENDIF         
+         ENDIF 
+      CASE("CurrentSheet-hlf")
+         IF(flag1d)THEN
+            CALL post2fluid_UxyT(t,xyw,xyw_kt,uw)
+c            CALL post2fluid_Uprofile(nxs,xyw,xyw_kt,uw,uxyw)
+            CALL post2fluid_width(nxs,t,xyw,xyw_kt,uw,uxyw)        
+         ENDIF
       END SELECT
 c-----------------------------------------------------------------------
 c     terminate.
@@ -969,6 +993,19 @@ c-----------------------------------------------------------------------
             CALL plotter_UxyT(t,nol,nol,xyw,xyw_kt,utemp,.TRUE.,value1,
      $           err)
          END SELECT
+      CASE("Density")
+         SELECT CASE(job_type)
+         CASE("CurrentSheet-hlf")
+            utemp(1,:,:)=EXP(uw(1,:,:))
+c            utemp(1,:,:)=uw(7,:,:)
+            CALL plotter_UxyT(t,x1,y1,xyw,xyw_kt,utemp,.TRUE.,value1,
+     $           err)
+            OPEN(UNIT=UxyT_unit,FILE="Density_xy.dat",STATUS="UNKNOWN",
+     $           POSITION="APPEND",FORM="FORMATTED")
+112     FORMAT(5e15.5)
+            WRITE(UxyT_unit,112)REAL(t,4),REAL(value1,4)
+            CLOSE(UNIT=UxyT_unit)
+            END SELECT
       END SELECT
 c-----------------------------------------------------------------------
 c     terminate.
@@ -1112,6 +1149,14 @@ c-----------------------------------------------------------------------
          utemp(6,:,:) = uw(5,:,:)
          utemp(7,:,:) = uw(5,:,:)/uw(1,:,:)
          utemp(8,:,:) = uw(3,:,:)
+         CALL plotter_Uprofile(x1,y1,x2,y2,nxs,xyw,xyw_kt,utemp,
+     $        uprofile,.TRUE.,filename)
+      CASE("CurrentSheet-hlf")
+         ALLOCATE(utemp(3,0:SIZE(uw,2)-1,0:SIZE(uw,3)-1),
+     $            uprofile(4,0:nxs))
+         utemp(1,:,:)= EXP(uw(1,:,:))
+         utemp(2,:,:)= uw(7,:,:)
+         utemp(3,:,:)= uw(3,:,:)
          CALL plotter_Uprofile(x1,y1,x2,y2,nxs,xyw,xyw_kt,utemp,
      $        uprofile,.TRUE.,filename)
       END SELECT
@@ -1270,6 +1315,19 @@ c-----------------------------------------------------------------------
          WRITE(width_unit)REAL(t,4),REAL(width1,4),REAL(width2,4),
      $        REAL(width3,4),REAL(width4,4),REAL(width5,4),
      $        REAL(width6,4)
+         CLOSE(UNIT=width_unit)
+      CASE("CurrentSheet-hlf")
+         wtype="half_max"
+         utemp(1,:,:)=uw(7,:,:)
+         CALL plotter_width
+     $        (x1,y1,x2,y2,nxs,xyw,xyw_kt,utemp,wtype,width1)
+c         utemp(1,:,:)=EXP(uw(1,:,:))-1.
+c         CALL plotter_width
+c     $        (nol,y1,x2,y2,nxs,xyw,xyw_kt,utemp,wtype,width2)
+         OPEN(UNIT=width_unit,FILE="width.dat",STATUS="UNKNOWN",
+     $        POSITION="APPEND",FORM="FORMATTED")
+ 112     FORMAT(5e15.5)
+         WRITE(width_unit,112)REAL(t,4),REAL(width1,4)
          CLOSE(UNIT=width_unit)
       END SELECT
 c-----------------------------------------------------------------------

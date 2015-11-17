@@ -3,11 +3,11 @@
 *.lo
 *.o
 *.obj
-MAST-init
-SolarLnMHD_2F
-SolarLnMHD_2F_it
-cmhd
-SolarLnMHD_2F
+code_3.1/MAST-init
+code_3.1/SolarLnMHD_2F
+code_3.1/SolarLnMHD_2F_it
+code_3.1/cmhd
+
 
 # Precompiled Headers
 *.gch
