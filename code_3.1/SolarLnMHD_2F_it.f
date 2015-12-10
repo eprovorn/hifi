@@ -169,8 +169,10 @@ c        u(1,:,:)=LOG(one + 1./beta0*(one - (TANH(x/h_psi))**2))
         u(1,:,:)=LOG(one + c_rho*(one - (TANH(x/h_psi))**2))
         u(2,:,:)= h_psi*LOG(COSH(x/h_psi))
 c        u(3,:,:)=0.
+c        u(3,:,:)= SQRT(bz0**2 + one - (TANH(x/h_psi))**2
+c     $            +beta0*(one - (EXP(u(1,:,:)))**(gamma)))-bz0
         u(3,:,:)= SQRT(bz0**2 + one - (TANH(x/h_psi))**2
-     $            +beta0*(one - (EXP(u(1,:,:)))**(gamma)))-bz0
+     $            + beta0*(one - EXP(u(1,:,:))))-bz0
         u(7,:,:)=1._r8/h_psi/COSH(x/h_psi)/COSH(x/h_psi)      
 c Elena end  
       CASE("TwoFR")
