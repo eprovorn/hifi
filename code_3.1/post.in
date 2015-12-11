@@ -1,7 +1,7 @@
 &post_input
 
-	indir="/scratch/scratchdirs/eprovorn/CS_isotherm_reducedBz"
-	postout="/scratch/scratchdirs/eprovorn/CS_isotherm_reducedBz/data"
+	indir="/scratch/scratchdirs/eprovorn/CS_isotherm_reducedBz_beta0.02"
+	postout="/scratch/scratchdirs/eprovorn/CS_isotherm_reducedBz_beta0.02/data"
 	out_type="hdf5"
 
 	job_type="ACurrentSheet-hlf"
@@ -13,7 +13,7 @@
 	polar_crd=f
 
 	mfile=1000
-	stride=1
+	stride=10
 
 	contour=t
 	min_value=1.e-16

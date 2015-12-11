@@ -1,1 +1,1 @@
-makefile_hopper
+makefile_cori

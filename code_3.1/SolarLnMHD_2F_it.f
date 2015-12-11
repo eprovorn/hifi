@@ -1546,6 +1546,8 @@ c Elena: what mu in our case? default
       SELECT CASE(init_type)
       CASE("MAST")
          CALL MAST_ddiff(x,y,ddiff,ddiff_local)
+      CASE DEFAULT
+         ddiff_local=ddiff
       END SELECT
 c-----------------------------------------------------------------------
 c     velocities and their gradients.
@@ -1852,6 +1854,8 @@ c-----------------------------------------------------------------------
       SELECT CASE(init_type)
       CASE("MAST")
          CALL MAST_ddiff(x,y,ddiff,ddiff_local)
+      CASE DEFAULT
+         ddiff_local=ddiff
       END SELECT
 c-----------------------------------------------------------------------
 c     velocities and their derivatives.
