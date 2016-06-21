@@ -20,6 +20,8 @@ c     11. transport_mun.
 c     12. transport_mun_u.
 c     13. transport_hexch.
 c     14. transport_hexch_u.
+c     15. transport_radloss.
+c     16. transport_radloss_u.
 c-----------------------------------------------------------------------
 c     subprogram 0. transport_mod.
 c     module declarations.
@@ -41,22 +43,32 @@ c     sets resistivity.
 c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c     declarations.
+c p_e - electron pressure, p_i - ion pressure
 c-----------------------------------------------------------------------
-      SUBROUTINE transport_seteta(eta_case,x,rho,p,j,chod_const,
-     $     etas_norm,etac_norm,v_chod_norm,r_eta,eta,etavac,eta_local)
+      SUBROUTINE transport_seteta(eta_case,x,rho,p_e,p_i,j,jc_norm,
+     $     eta_anm_norm, chod_const,etas_norm,etac_norm,
+     $     v_chod_norm,r_eta,eta,etavac,coeff,eta_local)
       
       CHARACTER(*), INTENT(IN) :: eta_case
       REAL(r8), INTENT(IN) :: etas_norm,etac_norm,v_chod_norm,r_eta,eta,
-     $     etavac,chod_const
-      REAL(r8), DIMENSION(:,:), INTENT(IN) :: x,rho,p,j
+     $     etavac,chod_const, jc_norm, eta_anm_norm
+      REAL(r8), DIMENSION(:,:), INTENT(IN) :: x,rho,p_e,p_i,j
       REAL(r8), DIMENSION(:,:), INTENT(OUT) :: eta_local
+      REAL(r8), DIMENSION(:,:,:), INTENT(OUT) :: coeff
 
-      REAL(r8), DIMENSION(SIZE(rho,1),SIZE(rho,2)) :: T_local
+      REAL(r8), DIMENSION(SIZE(rho,1),SIZE(rho,2)) :: Te_local,Ti_local, 
+     $     dj, j_c, eta1_anm, deta_dj
 c-----------------------------------------------------------------------
 c     initialize values.
 c-----------------------------------------------------------------------
       eta_local=eta
-      T_local = MAX(p/rho,eps)
+      Te_local = MAX(p_e/rho,eps)
+      Ti_local = MAX(p_i/rho,eps)
+      dj = 0.
+      j_c = 0.
+      eta1_anm=0.
+      deta_dj=0. 
+      coeff = 0.
 c-----------------------------------------------------------------------
 c     set resistivity.
 c-----------------------------------------------------------------------
@@ -65,15 +77,48 @@ c-----------------------------------------------------------------------
 c     set eta = (spitzer resistivity + chodura resistivity)
 c-----------------------------------------------------------------------
       CASE("spitzer-chodura","sc+r-layer")
-         eta_local=etas_norm/T_local**1.5
+         eta_local=etas_norm/Te_local**1.5
      $        + chod_const*etac_norm/SQRT(rho)
      $        *(one - EXP(-v_chod_norm*ABS(j)
-     $        /(fc*rho*SQRT(gamma*T_local))))
+     $        /(fc*rho*SQRT(gamma*Te_local))))
          eta_local = MIN(eta_local,etavac)
          IF(eta_case=="sc+r-layer")THEN
             WHERE(x < r_eta) eta_local = MAX(eta_local,
      $           etavac*half*(one-COS(pi*(one-x/r_eta))))
          ENDIF
+      CASE("IAT-anomalous")
+         eta_local = etas_norm/Te_local**1.5
+         eta_local = MIN(eta_local,etavac)
+
+         j_c = jc_norm*rho*SQRT(Te_local)
+         dj = 0.05*j_c
+         eta1_anm = eta_anm_norm*(Te_local/Ti_local)/SQRT(rho) 
+         deta_dj =  eta1_anm/j_c
+
+         WHERE (j > j_c .AND. j < (j_c + dj))
+            coeff(1,:,:) = -(deta_dj*(-dj) - 2.*eta_local + 2.*eta1_anm)
+     $           /dj**3 
+
+            coeff(2,:,:) = -(-2.*j_c**2*deta_dj + j_c*(3.*eta_local 
+     $           + (j_c+dj)*deta_dj - 3.*eta1_anm) 
+     $           + (j_c+dj)*(3.*eta_local + (j_c+dj)*deta_dj 
+     $           - 3.*eta1_anm))/dj**3
+
+            coeff(3,:,:) = - j_c*(deta_dj*j_c**2 + j_c*(j_c+dj)*deta_dj 
+     $           - 6.*eta_local*(j_c+dj) - 2.*deta_dj*(j_c+dj)**2 
+     $           + 6.*(j_c+dj)*eta1_anm)/dj**3
+
+            coeff(4,:,:) = -(j_c**3*(eta1_anm - (j_c+dj)*deta_dj) 
+     $           + j_c**2*(j_c+dj)*((j_c+dj)*deta_dj - 3.*eta1_anm)
+     $           + 3.*j_c*eta_local*(j_c+dj)**2 - eta_local*(j_c+dj)**3)
+     $           /dj**3
+
+            eta_local = coeff(1,:,:)*j**3 + coeff(2,:,:)*j**2 
+     $           + coeff(3,:,:)*j + coeff(4,:,:)
+            
+         ELSEWHERE (j > j_c + dj)
+            eta_local = deta_dj*j
+         END WHERE
 c-----------------------------------------------------------------------
 c     define distance r_eta s.t. resistivity rises from "interior" 
 c     value eta to "wall" value etavac for x < r_eta
@@ -103,46 +148,52 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c     declarations.
 c-----------------------------------------------------------------------
-      SUBROUTINE transport_seteta_u(eta_case,x,rho,p,j,chod_const,
+      SUBROUTINE transport_seteta_u(eta_case,x,rho,p_e,p_i,j,jc_norm,
+     $     eta_anm_norm,chod_const,
      $     etas_norm,etac_norm,v_chod_norm,r_eta,eta,etavac,
-     $     eta_local,eta_rho,eta_p,eta_j)
+     $     eta_local,eta_rho,eta_p,eta_pi,eta_j)
       
       CHARACTER(*), INTENT(IN) :: eta_case
       REAL(r8), INTENT(IN) :: etas_norm,etac_norm,v_chod_norm,r_eta,eta,
-     $     etavac,chod_const
-      REAL(r8), DIMENSION(:,:), INTENT(IN) :: x,rho,p,j
+     $     etavac,chod_const, jc_norm, eta_anm_norm
+      REAL(r8), DIMENSION(:,:), INTENT(IN) :: x,rho,p_e,p_i,j
       REAL(r8), DIMENSION(:,:), INTENT(OUT) :: eta_local,eta_rho,eta_p,
-     $     eta_j
+     $     eta_j, eta_pi
 
-      REAL(r8), DIMENSION(SIZE(rho,1),SIZE(rho,2)) :: exp_chod,T_local
+      REAL(r8), DIMENSION(4,SIZE(rho,1),SIZE(rho,2)) :: coeff
+      REAL(r8), DIMENSION(SIZE(rho,1),SIZE(rho,2)) :: exp_chod,Te_local,
+     $     Ti_local, j_c, dj, deta_dj
 c-----------------------------------------------------------------------
 c     initialize values.
 c-----------------------------------------------------------------------
       eta_rho=zero
       eta_p=zero
       eta_j=zero
-      T_local = MAX(p/rho,eps)
+      eta_pi = zero
+      Te_local = MAX(p_e/rho,eps)
+      Ti_local = MAX(p_i/rho,eps)
 c-----------------------------------------------------------------------
 c     set resistivity.
 c-----------------------------------------------------------------------
-      CALL transport_seteta(eta_case,x,rho,p,j,chod_const,
-     $     etas_norm,etac_norm,v_chod_norm,r_eta,eta,etavac,eta_local)
+      CALL transport_seteta(eta_case,x,rho,p_e,p_i,j,jc_norm,
+     $     eta_anm_norm,chod_const,etas_norm,etac_norm,v_chod_norm,
+     $     r_eta,eta,etavac,coeff,eta_local)
 c-----------------------------------------------------------------------
 c     set d/du(resistivity).
 c-----------------------------------------------------------------------
       SELECT CASE(eta_case)
       CASE("spitzer-chodura","sc+r-layer")
-         exp_chod=EXP(-v_chod_norm*ABS(j)/(fc*rho*SQRT(gamma*T_local)))
+         exp_chod=EXP(-v_chod_norm*ABS(j)/(fc*rho*SQRT(gamma*Te_local)))
 
-         eta_rho = 1.5_r8*etas_norm/(rho*T_local**1.5)
+         eta_rho = 1.5_r8*etas_norm/(rho*Te_local**1.5)
      $        + chod_const*etac_norm*half/rho**1.5
      $        *(-one + exp_chod - v_chod_norm*ABS(j)*exp_chod
-     $        /(fc*rho*SQRT(gamma*T_local)))
-         eta_p = -1.5_r8*etas_norm/(rho*T_local**2.5)
+     $        /(fc*rho*SQRT(gamma*Te_local)))
+         eta_p = -1.5_r8*etas_norm/(rho*Te_local**2.5)
      $        - chod_const*etac_norm*v_chod_norm*ABS(j)
-     $        /(two*fc*rho**2.5*SQRT(gamma)*T_local**1.5)*exp_chod
+     $        /(two*fc*rho**2.5*SQRT(gamma)*Te_local**1.5)*exp_chod
          eta_j = chod_const*etac_norm*v_chod_norm*SIGN(exp_chod,j)
-     $        /(fc*rho**1.5*SQRT(gamma*T_local))
+     $        /(fc*rho**1.5*SQRT(gamma*Te_local))
 c-----------------------------------------------------------------------
 c     where eta_local is overwritten, set derivatives to zero.
 c-----------------------------------------------------------------------
@@ -150,10 +201,10 @@ c-----------------------------------------------------------------------
             eta_rho=zero
             eta_p=zero
             eta_j=zero
-         ELSEWHERE(p/rho < eps)
+         ELSEWHERE(p_e/rho < eps)
             eta_rho = chod_const*etac_norm*half/rho**1.5
      $           *(-one + exp_chod - two*v_chod_norm*ABS(j)*exp_chod
-     $           /(fc*rho*SQRT(gamma*T_local)))
+     $           /(fc*rho*SQRT(gamma*Te_local)))
             eta_p = zero
          END WHERE
 
@@ -165,6 +216,28 @@ c-----------------------------------------------------------------------
                eta_j=zero
             END WHERE
          ENDIF
+      CASE("IAT-anomalous")
+         j_c = jc_norm*rho*SQRT(Te_local)
+         dj = 0.05*j_c
+
+         eta_rho = 1.5_r8*etas_norm/(rho*Te_local**1.5)
+         eta_p = -1.5_r8*etas_norm/(rho*Te_local**2.5)
+         eta_j = zero
+         eta_pi = zero
+
+         WHERE (j > j_c .AND. j < (j_c + dj))
+            eta_j = 3.*coeff(1,:,:)*j**2 + 2.*coeff(2,:,:)*j 
+     $           + coeff(3,:,:)
+            eta_rho = zero
+            eta_p = zero
+            eta_pi = zero
+         ELSEWHERE (j > j_c + dj)
+            deta_dj =  eta_anm_norm*(Te_local/Ti_local)/SQRT(rho)/j_c
+            eta_j = deta_dj
+            eta_rho = - deta_dj*j/rho
+            eta_p = 0.5*deta_dj*j/p_e
+            eta_pi = - deta_dj*j/p_i
+         END WHERE
       END SELECT
 c-----------------------------------------------------------------------
 c     if density is non-positive, set transport coefficients to 0
@@ -447,7 +520,7 @@ c-----------------------------------------------------------------------
       REAL(r8), DIMENSION(:,:,:), INTENT(OUT) :: BdotT,
      $     BdotT_b1,BdotT_b2,BdotT_b3,BdotT_Tx,BdotT_Ty
 
-      INTEGER :: i,ndim
+      INTEGER :: i
       REAL(r8), DIMENSION(SIZE(b1,1),SIZE(b1,2)) :: invBsq,Bsq
 c-----------------------------------------------------------------------
 c     set derivatives of BdotT.
@@ -455,7 +528,6 @@ c-----------------------------------------------------------------------
       CALL transport_BdotT(b1,b2,b3,Tx,Ty,BdotT)
       Bsq = b1**2 + b2**2 + b3**2
       invBsq = one/Bsq
-      ndim = SIZE(BdotT_b1,1)
       
       BdotT_b1(1,:,:) = invBsq**2*(two*b1*(b2**2 + b3**2)*Tx 
      $     + b2*(-b1**2 + b2**2 + b3**2)*Ty)
@@ -473,19 +545,18 @@ c-----------------------------------------------------------------------
       BdotT_Tx(2,:,:) = b2*b1*invBsq
       BdotT_Ty(2,:,:) = b2**2*invBsq
       
-      IF(ndim > 2)THEN
-         BdotT_b1(3,:,:) = -b3*invBsq**2
-     $        *(two*b2*b1*Ty + (b1**2 - b2**2 - b3**2)*Tx)
-         BdotT_b2(3,:,:) = -b3*invBsq**2
-     $        *(two*b2*b1*Tx + (b2**2  - b1**2 - b3**2)*Ty)
-         BdotT_b3(3,:,:) = invBsq**2*(b1*Tx + b2*Ty)
-     $        *(b1**2 + b2**2 - b3**2)
-         BdotT_Tx(3,:,:) = b3*b1*invBsq
-         BdotT_Ty(3,:,:) = b3*b2*invBsq
-      ENDIF
+      BdotT_b1(3,:,:) = -b3*invBsq**2
+     $     *(two*b2*b1*Ty + (b1**2 - b2**2 - b3**2)*Tx)
+      BdotT_b2(3,:,:) = -b3*invBsq**2
+     $     *(two*b2*b1*Tx + (b2**2  - b1**2 - b3**2)*Ty)
+      BdotT_b3(3,:,:) = invBsq**2*(b1*Tx + b2*Ty)
+     $     *(b1**2 + b2**2 - b3**2)
+      BdotT_Tx(3,:,:) = b3*b1*invBsq
+      BdotT_Ty(3,:,:) = b3*b2*invBsq
 
-      DO i=1,ndim
+      DO i=1,SIZE(BdotT,1)
          WHERE(Bsq <= Bmin**2)
+            BdotT(i,:,:)=zero
             BdotT_b1(i,:,:)=zero
             BdotT_b2(i,:,:)=zero
             BdotT_b3(i,:,:)=zero
@@ -753,4 +824,123 @@ c     terminate
 c-----------------------------------------------------------------------
       RETURN
       END SUBROUTINE transport_hexch_u
-      END MODULE transport_mod
+c-----------------------------------------------------------------------
+c     subprogram 15. transport_radloss.
+c     sets energy loss term due to radiation 
+c-----------------------------------------------------------------------
+c-----------------------------------------------------------------------
+c     declarations.
+c-----------------------------------------------------------------------
+      SUBROUTINE transport_radloss(rad_fac,T0,rho,pe,alpha,rad_loss)
+
+      REAL(r8), INTENT(IN) :: rad_fac, T0
+      REAL(r8), DIMENSION(:,:), INTENT(IN) :: rho, pe
+      REAL(r8), DIMENSION(:,:), INTENT(OUT) :: alpha, rad_loss 
+
+      REAL(r8), PARAMETER :: mp=1.673e-27 
+      REAL(r8), DIMENSION(6) :: T_range
+      REAL(r8), DIMENSION(7) :: hi, power
+      REAL(r8), DIMENSION(SIZE(rho,1), SIZE(rho,2)) :: Te
+c-----------------------------------------------------------------------
+c     initialize values.
+c-----------------------------------------------------------------------
+      alpha = 0.0
+      rad_loss = 0.0
+      Te = MAX(pe/rho, eps)
+c-----------------------------------------------------------------------
+c     initialize prametrization from Klimchuk et al. 2008
+c-----------------------------------------------------------------------      
+       T_range = (/9.332e4_r8, 4.677e5_r8, 1.513e6_r8, 3.548e6_r8, 
+     $            7.943e6_r8, 4.265e7_r8/)
+
+       power = (/2.0, -1.0, 0.0, -1.5, 0.33, -1.0, 0.5 /)
+
+       hi = (/1.09e-31_r8, 8.87e-17_r8, 1.9e-22_r8, 3.53e-13_r8, 
+     $        3.46e-25_r8, 5.49e-16_r8, 1.96e-27_r8/)
+
+      T_range = T_range/T0
+       hi  = rad_fac * (T0**power) * hi * 1.e-13_r8
+
+c-----------------------------------------------------------------------
+c     set radiative loss function
+c-----------------------------------------------------------------------
+      WHERE(Te <= T_range(1))
+         rad_loss = hi(1)*(Te**power(1))
+         alpha = power(1)
+      ELSEWHERE(T_range(1)<Te .AND. Te<= T_range(2))
+         rad_loss = hi(2)*(Te**power(2))
+         alpha = power(2)
+      ELSEWHERE(T_range(2)<Te .AND. Te<=T_range(3))
+         rad_loss = hi(3)*(Te**power(3))
+         alpha = power(3)
+      ELSEWHERE(T_range(3)<Te .AND. Te<=T_range(4))
+         rad_loss = hi(4)*(Te**power(4))
+         alpha = power(4)
+      ELSEWHERE(T_range(4)<Te .AND. Te<=T_range(5))
+         rad_loss = hi(5)*(Te**power(5))
+         alpha = power(5)
+      ELSEWHERE(T_range(5)<Te .AND. Te<=T_range(6))
+         rad_loss = hi(6)*(Te**power(6))
+         alpha = power(6)
+      ELSEWHERE(T_range(6)<Te )
+         rad_loss = hi(7)*(Te**power(7))
+         alpha = power(7)
+      END WHERE
+ 
+      rad_loss = rad_loss * rho * rho
+c-----------------------------------------------------------------------
+c     if density is non-positive, set rad_loss to zero
+c-----------------------------------------------------------------------
+      WHERE(rho <= 0)
+         rad_loss = zero
+      END WHERE
+c-----------------------------------------------------------------------
+c     terminate
+c-----------------------------------------------------------------------
+      RETURN
+      END SUBROUTINE transport_radloss
+c-----------------------------------------------------------------------
+c     subprogram 16. transport_radloss_u.
+c     sets radiative loss term jacobian
+c-----------------------------------------------------------------------
+c-----------------------------------------------------------------------
+c     declarations.
+c-----------------------------------------------------------------------
+      SUBROUTINE transport_radloss_u(rad_fac,T0,rho,pe,rad_loss,
+     $           rloss_rho,rloss_pe)
+
+      REAL(r8), INTENT(IN) :: rad_fac, T0
+      REAL(r8), DIMENSION(:,:), INTENT(IN) :: rho, pe
+      REAL(r8), DIMENSION(:,:), INTENT(OUT) :: rad_loss,
+     $                          rloss_rho,rloss_pe
+      REAL(r8), DIMENSION(SIZE(rho,1), SIZE(rho,2)) :: Te, alpha 
+c-----------------------------------------------------------------------
+c     initialize values.
+c-----------------------------------------------------------------------
+      rad_loss = 0.0
+      rloss_rho = 0.0
+      rloss_pe = 0.0
+
+      Te = MAX(pe/rho, eps)
+
+      CALL transport_radloss(rad_fac,T0,rho,pe,alpha,rad_loss) 
+c-----------------------------------------------------------------------
+c     set drdu
+c-----------------------------------------------------------------------
+      rloss_rho = (2.-alpha) * rad_loss/rho  
+      rloss_pe = alpha * rad_loss/pe  
+ 
+c-----------------------------------------------------------------------
+c     if density is non-positive, set to zero
+c-----------------------------------------------------------------------
+      WHERE(rho <= 0)
+         rad_loss = zero
+         rloss_rho = zero
+         rloss_pe = zero
+      END WHERE
+      
+      RETURN
+      END SUBROUTINE transport_radloss_u
+      END MODULE transport_mod     
+
+

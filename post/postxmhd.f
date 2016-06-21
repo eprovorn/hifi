@@ -146,18 +146,18 @@ c-----------------------------------------------------------------------
 
       SELECT CASE(eta_case)
       CASE("spitzer-chodura","spitzer","chodura")
-         CALL transport_seteta("spitzer-chodura",xyw(2,:,:),rho,p,j,
-     $        chod_const,etas_norm,etac_norm,v_chod_norm,r_eta,eta,
-     $        etavac,uu(1,:,:))
-         CALL transport_seteta("spitzer-chodura",xyw(2,:,:),rho,p,j,
-     $        chod_const,etas_norm,0._r8,v_chod_norm,r_eta,eta,etavac,
-     $        uu(2,:,:))
-         CALL transport_seteta("spitzer-chodura",xyw(2,:,:),rho,p,j,
-     $        chod_const,0._r8,etac_norm,v_chod_norm,r_eta,eta,etavac,
-     $        uu(3,:,:))
-      CASE("x-layer")
-         CALL transport_seteta(eta_case,xyw(2,:,:),rho,p,j,0._r8,0._r8,
-     $        0._r8,0._r8,r_eta,eta,etavac,uu(1,:,:))
+c         CALL transport_seteta("spitzer-chodura",xyw(2,:,:),rho,p,j,
+c     $        chod_const,etas_norm,etac_norm,v_chod_norm,r_eta,eta,
+c     $        etavac,uu(1,:,:))
+c         CALL transport_seteta("spitzer-chodura",xyw(2,:,:),rho,p,j,
+c     $        chod_const,etas_norm,0._r8,v_chod_norm,r_eta,eta,etavac,
+c     $        uu(2,:,:))
+c         CALL transport_seteta("spitzer-chodura",xyw(2,:,:),rho,p,j,
+c     $        chod_const,0._r8,etac_norm,v_chod_norm,r_eta,eta,etavac,
+c     $        uu(3,:,:))
+c      CASE("x-layer")
+c         CALL transport_seteta(eta_case,xyw(2,:,:),rho,p,j,0._r8,0._r8,
+c     $        0._r8,0._r8,r_eta,eta,etavac,uu(1,:,:))
       END SELECT
 
       uu(6,:,:)=uu(1,:,:)*j**2

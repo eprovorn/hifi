@@ -1,0 +1,19 @@
+=>> PBS: job killed: walltime 1830 exceeded limit 1800
+
+ + --------------------------------------------------------------------------
+ +        Job name: SEL
+ +          Job Id: 13267872.hopque01
+ +          System: hopper
+ +     Queued Time: Sat Sep 26 19:12:41 2015
+ +      Start Time: Sat Sep 26 19:13:53 2015
+ + Completion Time: Sat Sep 26 19:44:31 2015
+ +            User: eprovorn
+ +        MOM Host: nid05611
+ +           Queue: debug
+ +  Req. Resources: mppnodect=30,mppnppn=24,mppwidth=720,walltime=00:30:00
+ +  Used Resources: cput=00:00:03,energy_used=0,mem=6360kb,vmem=135428kb,walltime=00:30:40
+ +     Acct String: m1255
+ +   PBS_O_WORKDIR: /global/u1/e/eprovorn/hifi_svn/code_3.1
+ +     Submit Args: go
+ + --------------------------------------------------------------------------
+

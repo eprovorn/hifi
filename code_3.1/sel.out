@@ -1,0 +1,6 @@
+------------------------------------------------------------------------
+ physics = SolarLnMHD, step_type = theta, nproc =    768, nbx =   12
+ xper = F, yper = T, nx =   72, ny =  128, np = 6, nq = 6
+ solve_type = condense
+ Wallclock time =  1.900E-02 seconds
+  PROGRAM_STOP => universal_input is incorrect.

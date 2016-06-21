@@ -172,26 +172,26 @@ c-----------------------------------------------------------------------
       SELECT CASE(init_type)
 c Elena begin: h_psi - width of the current sheet            
       CASE("CurrentSheet-hlf")
-        u(1,:,:)=LOG(one + c_rho*(one - (TANH(x/h_psi))**2))       
+c        u(1,:,:)=LOG(one + c_rho*(one - (TANH(x/h_psi))**2))       
 c Harris sheet
-c        u(1,:,:)=LOG(one + 1./beta0*(one - (TANH(x/h_psi))**2))
+        u(1,:,:)=LOG(one + 1./beta0*(one - (TANH(x/h_psi))**2))
         u(2,:,:)= h_psi*LOG(COSH(x/h_psi))
 c        u(8,:,:)=0.25_r8*beta0*(one + c_T*(one - (TANH(x/h_psi))**2))
 c     $          *EXP(u(1,:,:))
-        u(8,:,:)=0.25_r8*beta0*(EXP(u(1,:,:)))**(gamma)
+c        u(8,:,:)=0.25_r8*beta0*(EXP(u(1,:,:)))**(gamma)
         
-        u(3,:,:)= SQRT(bz0**2 + one - (TANH(x/h_psi))**2
-     $    + 4.*0.25_r8*beta0 - 4.*u(8,:,:))-bz0
-c        u(3,:,:)=0.
+c        u(3,:,:)= SQRT(bz0**2 + one - (TANH(x/h_psi))**2
+c     $    + 4.*0.25_r8*beta0 - 4.*u(8,:,:))-bz0
+        u(3,:,:)=0.
 c        u(3,:,:)= SQRT(bz0**2 + one - (TANH(x/h_psi))**2)-bz0
         u(7,:,:)=1._r8/h_psi/COSH(x/h_psi)/COSH(x/h_psi)
 c        u(8,:,:)=0.25_r8*beta0
 c        u(9,:,:)=0.25_r8*beta0
-c        u(8,:,:)=0.25_r8*beta0*(1.+1./beta0*(one - (TANH(x/h_psi))**2))
-c        u(9,:,:)=0.25_r8*beta0*(1.+1./beta0*(one - (TANH(x/h_psi))**2)) 
+        u(8,:,:)=0.25_r8*beta0*(1.+1./beta0*(one - (TANH(x/h_psi))**2))
+        u(9,:,:)=0.25_r8*beta0*(1.+1./beta0*(one - (TANH(x/h_psi))**2)) 
 c        u(9,:,:)=0.25_r8*beta0*(one + c_T*(one - (TANH(x/h_psi))**2))
 c     $          *EXP(u(1,:,:)) 
-        u(9,:,:)=0.25_r8*beta0*(EXP(u(1,:,:)))**(gamma)
+c        u(9,:,:)=0.25_r8*beta0*(EXP(u(1,:,:)))**(gamma)
         IF(.NOT. deriv)RETURN
 c        ux(1,:,:)= -EXP(-(x/h_psi)**2)*2.*x/(one 
 c     $  + EXP(-(x/h_psi)**2))/h_psi**2
@@ -323,12 +323,12 @@ c     compute viscosity.
 c-----------------------------------------------------------------------
 
 c Elena: original expression
-c      mu_local = rho*(mu + mu_vbl*EXP(-((x-half*lx)/0.1)**2)
-c     $     + mu_vbl*EXP(-((y-ly)/0.4)**2)) + mu_min
+      mu_local = rho*(mu + mu_vbl*EXP(-((x-half*lx)/0.1)**2)
+     $     + mu_vbl*EXP(-((y-ly)/0.4)**2)) + mu_min
 
-c Elena: modified for the case with MAST initial conditions
-      mu_local = rho*(mu + mu_vbl*EXP(-((x-lx)/0.1)**2)
-     $     + mu_vbl*EXP(-((y-ly)/0.1)**2)) + mu_min
+c Elena: for the case with MAST initial conditions
+c      mu_local = rho*(mu + mu_vbl*EXP(-((x-lx)/0.1)**2)
+c     $     + mu_vbl*EXP(-((y-ly)/0.1)**2)) + mu_min
  
 c-----------------------------------------------------------------------
 c     terminate.
@@ -1656,8 +1656,13 @@ c-----------------------------------------------------------------------
 c     radiative losses
 c-----------------------------------------------------------------------
 
-      CALL transport_radloss(rad_fac,T0,rho,u(8,:,:)+pt0,alpha,rad_loss)
-
+      SELECT CASE(init_type)
+      CASE("CurrentSheet-hlf","MAST")
+         CALL transport_radloss(rad_fac,T0,rho,u(8,:,:)+pt0,alpha,
+     $        rad_loss)
+      CASE("Chen-Shibata-hlf")
+         rad_loss=0.0
+      END SELECT
 c-----------------------------------------------------------------------
 c     constant heating function based on electron initial density and 
 c     temperature profiles
@@ -1670,7 +1675,9 @@ c        p_init = 0.25*beta0*(EXP(u(1,:,:)))**(gamma)
         rho_init = one
         p_init = 0.25*beta0
         CALL transport_radloss(rad_fac,T0,rho_init,p_init,alpha,
-     $     heat_blnc_radlos) 
+     $     heat_blnc_radlos)
+      CASE ("Chen-Shibata-hlf")
+         heat_blnc_radlos=0.0    
       CASE DEFAULT
         rho_init = one
         p_init = 0.25*beta0
@@ -2044,8 +2051,15 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c     radiative losses.
 c-----------------------------------------------------------------------
-      CALL transport_radloss_u(rad_fac,T0,rho,u(8,:,:)+pt0,
+      SELECT CASE(init_type)
+      CASE("CurrentSheet-hlf","MAST")
+         CALL transport_radloss_u(rad_fac,T0,rho,u(8,:,:)+pt0,
      &     rad_loss, rloss_un, rloss_pe)
+      CASE("Chen-Shibata-hlf")
+         rad_loss = 0.0
+         rloss_un = 0.0
+         rloss_pe = 0.0
+      END SELECT
       rloss_un = rloss_un*rho
 c-----------------------------------------------------------------------
 c     viscous boundary layer.
@@ -2445,7 +2459,9 @@ c-----------------------------------------------------------------------
       CASE("Chen-Shibata-hlf","CS-stratified", "CurrentSheet-hlf")
 c        x=lx*0.5*(x_curve*ksi**3 + ksi)/(x_curve + 1.)
         x=lx*0.5*(x_curve*ksi**5 + ksi)/(x_curve + 1.)
-        y=ly*(y_curve*phi**2 + phi)/(y_curve+one)
+c        y=ly*(y_curve*phi**2 + phi)/(y_curve+one)
+c Elena: y-grid modification to resolve CS near y=0.74
+        y=27.12*(phi-0.30106)**3+0.74
       CASE("CurrentSheet")
         y=ly*(y_curve*phi**2 + phi)/(y_curve+one)
         x=lx*0.5*(x_curve*ksi**3 + ksi)/(x_curve + 1.)

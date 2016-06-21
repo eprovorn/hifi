@@ -1,36 +1,11 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-code_3.1/MAST-init
-code_3.1/SolarLnMHD_2F
-code_3.1/SolarLnMHD_2F_it
-code_3.1/cmhd
-code_3.1/post
-code_3.1/*.bin
-post/post
+*
+!*/
+!*.f
+!*.in
+!makefile*
+!go*
+!README
+!*.dat
+!*.out
+!.gitignore
 
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app

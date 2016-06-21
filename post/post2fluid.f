@@ -340,8 +340,8 @@ c-----------------------------------------------------------------------
          ENDIF 
       CASE("CurrentSheet-hlf")
          IF(flag1d)THEN
-            CALL post2fluid_UxyT(t,xyw,xyw_kt,uw)
-c            CALL post2fluid_Uprofile(nxs,xyw,xyw_kt,uw,uxyw)
+c            CALL post2fluid_UxyT(t,xyw,xyw_kt,uw)
+            CALL post2fluid_Uprofile(nxs,xyw,xyw_kt,uw,uxyw)
 c            CALL post2fluid_width(nxs,t,xyw,xyw_kt,uw,uxyw)        
          ENDIF
       END SELECT
@@ -1155,8 +1155,9 @@ c-----------------------------------------------------------------------
          ALLOCATE(utemp(3,0:SIZE(uw,2)-1,0:SIZE(uw,3)-1),
      $            uprofile(4,0:nxs))
          utemp(1,:,:)= EXP(uw(1,:,:))
-         utemp(2,:,:)= uw(7,:,:)
-         utemp(3,:,:)= uxyw(:,:,1,2)
+         utemp(2,:,:)=uw(8,:,:)/EXP(uw(1,:,:))
+         utemp(3,:,:)= uw(7,:,:)
+c         utemp(3,:,:)= uxyw(:,:,1,2)
          CALL plotter_Uprofile(x1,y1,x2,y2,nxs,xyw,xyw_kt,utemp,
      $        uprofile,.TRUE.,filename)
       END SELECT
