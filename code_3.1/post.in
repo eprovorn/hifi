@@ -1,7 +1,7 @@
 &post_input
 
-	indir="/scratch1/scratchdirs/eprovorn/2016/ChenShibata_plasmoids"
-	postout="/scratch1/scratchdirs/eprovorn/2016/ChenShibata_plasmoids/data288x512"
+	indir="/scratch1/scratchdirs/eprovorn/2016/ChSh_plsm_smalbox"
+	postout="/scratch1/scratchdirs/eprovorn/2016/ChSh_plsm_smalbox/data_smbox"
 	out_type="hdf5"
 
 	job_type="."
@@ -13,7 +13,7 @@
 	polar_crd=f
 
 	mfile=3000
-	stride=269
+	stride=1
 
 	contour=t
 	min_value=1.e-16

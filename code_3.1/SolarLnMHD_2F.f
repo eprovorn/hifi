@@ -757,6 +757,7 @@ c         right%bc_type(1)="natural"
          edge_order=(/4,1,2,3/)
 
          bottom%static=.TRUE.
+         bottom%bc_type(1)="natural"         
 
          left%bc_type(1:3)="zeroflux" ! symmetric
          left%bc_type(5)="zeroflux"   ! symmetric
@@ -984,7 +985,7 @@ c thermal isolator gradT_e = 0. gradT_i =0.
                 psi_bc=psi_bc-c_psi_e*half*(one+COS(pi*(x-x0)/0.3))
      $            *half*(tfrac+1./twopi*SIN(twopi*(tfrac-half)))
             END WHERE
-            c(1,:,:)=uy(1,:,:)              !0=dy(ln(n))
+c            c(1,:,:)=uy(1,:,:)              !0=dy(ln(n))
             c(2,:,:)=u(2,:,:)-psi_bc        !0=Psi-Psi_0-Psi_e*t/t_e
             c(3,:,:)=uy(3,:,:)              !0=dy(B_z)
             c(4,:,:)=u(4,:,:)               !0=n*v_x
@@ -1291,7 +1292,7 @@ c            c_uy(6,6,:,:)=-nhat(2,:,:)*u(6,:,:)
               c_uy(i,i,:,:)=nhat(2,:,:)
             ENDDO
          CASE("bottom")
-            c_uy(1,1,:,:)=one
+c            c_uy(1,1,:,:)=one
             c_u(2,2,:,:)=one
             c_uy(3,3,:,:)=one
             c_u(4,4,:,:)=one
@@ -2461,7 +2462,8 @@ c        x=lx*0.5*(x_curve*ksi**3 + ksi)/(x_curve + 1.)
         x=lx*0.5*(x_curve*ksi**5 + ksi)/(x_curve + 1.)
 c        y=ly*(y_curve*phi**2 + phi)/(y_curve+one)
 c Elena: y-grid modification to resolve CS near y=0.74
-        y=27.12*(phi-0.30106)**3+0.74
+        y=ly*((phi-0.272)**3+y_curve*phi+0.272**3)/
+     $       ((1.-0.272)**3+y_curve+0.272**3)
       CASE("CurrentSheet")
         y=ly*(y_curve*phi**2 + phi)/(y_curve+one)
         x=lx*0.5*(x_curve*ksi**3 + ksi)/(x_curve + 1.)
