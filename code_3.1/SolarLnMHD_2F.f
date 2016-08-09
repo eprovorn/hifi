@@ -2462,8 +2462,8 @@ c        x=lx*0.5*(x_curve*ksi**3 + ksi)/(x_curve + 1.)
         x=lx*0.5*(x_curve*ksi**5 + ksi)/(x_curve + 1.)
 c        y=ly*(y_curve*phi**2 + phi)/(y_curve+one)
 c Elena: y-grid modification to resolve CS near y=0.74
-        y=ly*((phi-0.272)**3+y_curve*phi+0.272**3)/
-     $       ((1.-0.272)**3+y_curve+0.272**3)
+        y=ly*((phi-0.32)**3+y_curve*phi+0.32**3)/
+     $       ((1.-0.32)**3+y_curve+0.32**3)
       CASE("CurrentSheet")
         y=ly*(y_curve*phi**2 + phi)/(y_curve+one)
         x=lx*0.5*(x_curve*ksi**3 + ksi)/(x_curve + 1.)
