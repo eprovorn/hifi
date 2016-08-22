@@ -1,7 +1,7 @@
 &post_input
 
-	indir="/scratch1/scratchdirs/eprovorn/2016/ChSh_plsm_smalbox"
-	postout="/scratch1/scratchdirs/eprovorn/2016/ChSh_plsm_smalbox/data_smbox"
+	indir="/scratch1/scratchdirs/eprovorn/2016/ChSh_plsm_smalbox_eta1e-6_rst2"
+	postout="/scratch1/scratchdirs/eprovorn/2016/ChSh_plsm_smalbox_eta1e-6_rst2/data_smbox_eta1e-6"
 	out_type="hdf5"
 
 	job_type="."
@@ -13,7 +13,7 @@
 	polar_crd=f
 
 	mfile=3000
-	stride=1
+	stride=35
 
 	contour=t
 	min_value=1.e-16

@@ -1,7 +1,5 @@
-indir = /scratch1/scratchdirs/eprovorn/2016/ChSh_plsm_smalbox
+indir = /scratch1/scratchdirs/eprovorn/2016/ChSh_plsm_smalbox_eta1e-6_rst2
 job_type = .
-ifile =    0/   3
-ifile =    1/   3
-ifile =    2/   3
-ifile =    3/   3
- Wallclock time =  9.410E+01 seconds
+ifile =    0/  35
+ifile =   35/  35
+ Wallclock time =  2.057E+01 seconds
